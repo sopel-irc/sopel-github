@@ -16,9 +16,10 @@ Copyright 2015 Max Gurela
 
 from __future__ import unicode_literals
 
-from sopel import web, tools
-from sopel.formatting import bold, color
-from sopel.tools.time import get_timezone, format_time
+import re
+
+from sopel import web
+from sopel.formatting import color
 
 current_row = None
 current_payload = None
@@ -263,7 +264,6 @@ def fmt_pull_request_summary_message(payload=None):
         payload = current_payload
     base_ref = payload['pull_request']['base']['label'].split(':')[-1]
     head_ref = payload['pull_request']['head']['label'].split(':')[-1]
-    head_label = head_ref if head_ref != base_ref else payload['pull_request']['head']['label']
 
     return '[{}] {} {} pull request #{}: {} ({}...{})'.format(
                   fmt_repo(payload['repository']['name']),
@@ -307,7 +307,7 @@ def fmt_gollum_summary_message(payload=None):
         counts = {}
         for page in payload['pages']:
             # Set default value to 0 and increment 1, only incrementing if key already exists
-            counts[payload['pages']['action']] = counts.setdefault(payload['pages']['action'], 0) + 1
+            counts[page['action']] = counts.setdefault(page['action'], 0) + 1
         actions = []
         for action, count in counts.items():
             actions.append(action + " " + count)
