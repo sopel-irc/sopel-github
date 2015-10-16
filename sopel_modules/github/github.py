@@ -12,12 +12,13 @@ Copyright 2015 Max Gurela
 
 from __future__ import unicode_literals
 from sopel import web, tools
-from sopel.module import commands, rule, OP, NOLIMIT, example, interval
+from sopel.module import commands, rule, OP, NOLIMIT, example, require_chanmsg
 from sopel.formatting import bold, color
 from sopel.tools.time import get_timezone, format_time
-from sopel.config.types import StaticSection, ValidatedAttribute, NO_DEFAULT
+from sopel.config.types import StaticSection, ValidatedAttribute
 
 import github
+from github import formatting, shorten_url
 from github.webhook import setup_webhook, shutdown_webhook
 
 import operator
@@ -322,6 +323,7 @@ def fmt_response(bot, trigger, URL, from_regex=False):
 
 
 @commands('gh-hook')
+@require_chanmsg('[Github] Github hooks can only be configured in a channel')
 @example('.gh-hook maxpowa/Inumuta enable')
 def configure_repo_messages(bot, trigger):
     '''
@@ -370,6 +372,7 @@ def configure_repo_messages(bot, trigger):
 
 
 @commands('gh-hook-color')
+@require_chanmsg('[Github] Github hooks can only be configured in a channel')
 @example('.gh-hook-color maxpowa/Inumuta 13 15 6 6 14 2')
 def configure_repo_colors(bot, trigger):
     '''
@@ -410,9 +413,9 @@ def configure_repo_colors(bot, trigger):
         c.execute('SELECT * FROM gh_hooks WHERE channel = ? AND repo_name = ?', (channel, repo_name))
         row = c.fetchone()
         bot.say("[{}] Example name: {} tag: {} commit: {} branch: {} url: {}".format(
-                fmt_repo(repo_name, row),
-                fmt_name(trigger.nick, row),
-                fmt_tag('tag', row),
-                fmt_hash('c0mm17', row),
-                fmt_branch('master', row),
-                fmt_url('http://git.io/', row)))
+                formatting.fmt_repo(repo_name, row),
+                formatting.fmt_name(trigger.nick, row),
+                formatting.fmt_tag('tag', row),
+                formatting.fmt_hash('c0mm17', row),
+                formatting.fmt_branch('master', row),
+                formatting.fmt_url('http://git.io/', row)))
