@@ -7,7 +7,8 @@ from __future__ import unicode_literals, absolute_import, division, print_functi
 
 from .github import *
 
-__author__ = 'Max Gurela'
+__author__ = 'maxpowa'
 __email__ = 'maxpowa@outlook.com'
 __version__ = '0.1.0'
+__repo__ = 'https://github.com/maxpowa/sopel-github'
 
