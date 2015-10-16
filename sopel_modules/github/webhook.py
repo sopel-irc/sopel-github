@@ -25,6 +25,8 @@ from github.formatting import get_formatted_response
 from threading import Thread
 import bottle
 
+# Because I'm a horrible person
+sopel_instance = None
 
 def setup_webhook(sopel):
     global sopel_instance
