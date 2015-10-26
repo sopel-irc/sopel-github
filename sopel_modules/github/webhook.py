@@ -170,7 +170,7 @@ def handle_auth_response():
             "active": "true",
             "events": ["*"],
             "config": {
-                "url": "http://xpw.us/webhook",
+                "url": sopel_instance.config.github.external_url,
                 "content_type": "json"
             }
         }

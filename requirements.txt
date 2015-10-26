@@ -1,2 +1,2 @@
-sopel (>=6.0,<7.0)
+sopel>=6.0,<7
 bottle

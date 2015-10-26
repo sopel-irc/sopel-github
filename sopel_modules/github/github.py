@@ -18,7 +18,8 @@ from sopel.tools.time import get_timezone, format_time
 from sopel.config.types import StaticSection, ValidatedAttribute
 
 import github
-from github import formatting, shorten_url
+from github import formatting
+from github.formatting import shorten_url
 from github.webhook import setup_webhook, shutdown_webhook
 
 import operator
@@ -57,6 +58,7 @@ class GithubSection(StaticSection):
     webhook   = ValidatedAttribute('webhook', bool, default=False)
     webhook_host = ValidatedAttribute('webhook_host', default='0.0.0.0')
     webhook_port = ValidatedAttribute('webhook_port', default='3333')
+    external_url = ValidatedAttribute('external_url', default='http://your_ip_or_domain_here:3333')
 
 
 def configure(config):
@@ -67,6 +69,7 @@ def configure(config):
     if config.github.webhook:
         config.github.configure_setting('webhook_host', 'Listen IP for incoming webhooks (0.0.0.0 for all IPs)')
         config.github.configure_setting('webhook_port', 'Listen port for incoming webhooks')
+        config.github.configure_setting('external_url', 'Callback URL for webhook activation, should be your externally facing domain or IP. You must include the port unless you are reverse proxying.')
 
 
 def setup(sopel):
