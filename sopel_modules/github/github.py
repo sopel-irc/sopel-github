@@ -310,7 +310,7 @@ def fmt_response(bot, trigger, URL, from_regex=False):
         ' | Stargazers: ',
         str(data['stargazers_count']),
         ' | Watchers: ',
-        str(data['watchers_count']),
+        str(data['subscribers_count']),
         ' | Forks: ',
         str(data['forks_count']),
         ' | Network: ',
