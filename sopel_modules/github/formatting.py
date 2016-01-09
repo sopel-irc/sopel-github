@@ -162,8 +162,8 @@ def fmt_push_summary_message(payload=None, row=None):
         message.append("\00304deleted\017 {} at {}".format(fmt_branch(get_ref_name()), fmt_hash(get_before_sha())))
 
     elif payload['forced']:
-        message.append("\00304force-pushed\017 {} from {} to {}").format(
-                       fmt_branch(get_ref_name()), fmt_hash(get_before_sha()), fmt_hash(get_after_sha()))
+        message.append("\00304force-pushed\017 {} from {} to {}".format(
+                       fmt_branch(get_ref_name()), fmt_hash(get_before_sha()), fmt_hash(get_after_sha())))
 
     elif len(payload['commits']) > 0 and len(get_distinct_commits()) == 0:
         if payload['base_ref']:
