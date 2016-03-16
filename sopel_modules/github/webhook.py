@@ -167,7 +167,7 @@ def handle_auth_response():
 
         data = {
             "name": "web",
-            "active": "true",
+            "active": True,
             "events": ["*"],
             "config": {
                 "url": sopel_instance.config.github.external_url,
