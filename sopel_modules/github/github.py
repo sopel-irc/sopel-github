@@ -17,10 +17,9 @@ from sopel.formatting import bold, color
 from sopel.tools.time import get_timezone, format_time
 from sopel.config.types import StaticSection, ValidatedAttribute
 
-import github
-from github import formatting
-from github.formatting import shorten_url
-from github.webhook import setup_webhook, shutdown_webhook
+from . import formatting
+from .formatting import shorten_url
+from .webhook import setup_webhook, shutdown_webhook
 
 import operator
 from collections import deque
