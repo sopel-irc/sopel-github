@@ -16,7 +16,7 @@ Copyright 2015 Max Gurela
 
 from __future__ import unicode_literals
 
-from sopel import web, tools
+from sopel import tools
 from sopel.formatting import bold, color
 from sopel.tools.time import get_timezone, format_time
 
@@ -27,6 +27,7 @@ from .formatting import fmt_name
 from threading import Thread
 import bottle
 import json
+import requests
 
 # Because I'm a horrible person
 sopel_instance = None
@@ -157,9 +158,9 @@ def handle_auth_response():
     data = {'client_id': sopel_instance.config.github.client_id,
              'client_secret': sopel_instance.config.github.secret,
              'code': code}
-    raw = web.post('https://github.com/login/oauth/access_token', data, headers={'Accept': 'application/json'})
+    raw = requests.post('https://github.com/login/oauth/access_token', data=data, headers={'Accept': 'application/json'})
     try:
-        res = json.loads(raw)
+        res = json.loads(raw.text)
 
         if 'scope' not in res:
             raise ValueError('You\'ve already completed authorization on this repo')
@@ -178,8 +179,8 @@ def handle_auth_response():
             }
         }
 
-        raw = web.post('https://api.github.com/repos/{}/hooks?access_token={}'.format(repo, access_token), json.dumps(data))
-        res = json.loads(raw)
+        raw = requests.post('https://api.github.com/repos/{}/hooks?access_token={}'.format(repo, access_token), data=json.dumps(data))
+        res = json.loads(raw.text)
 
         if 'ping_url' not in res:
             if 'errors' in res:
@@ -187,7 +188,7 @@ def handle_auth_response():
             else:
                 raise ValueError('Webhook creation failed, try again.')
 
-        raw, headers = web.get(res['ping_url'] + '?access_token={}'.format(access_token), return_headers=True)
+        raw = requests.get(res['ping_url'] + '?access_token={}'.format(access_token))
 
         title = 'Done!'
         header = 'Webhook setup complete!'
