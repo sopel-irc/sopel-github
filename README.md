@@ -7,7 +7,7 @@ The easy (and recommended) way: `pip install sopel_modules.github`
 
 The less-easy way, you must already have Sopel installed to use this method.
 ```
-git clone https://github.com/maxpowa/sopel-github
+git clone https://github.com/sopel-irc/sopel-github
 cd sopel-github
 pip install .
 ```
@@ -77,7 +77,7 @@ external_url = http://your.ip.here:3333/webhook
 
 ### Creating hooks
 
-As an OP+ in a channel, you may type `.gh-hook user/repo`. You will see some informational text on what you need to do to finalize the hook, including a link to click to authorize the creation of the webhook. You will be required to authorize the Github application to read/write your webhooks (see [L163-164](https://github.com/maxpowa/sopel-github/blob/master/sopel_modules/github/webhook.py#L163-L164)) but this should be the _only_ permissions we need. 
+As an OP+ in a channel, you may type `.gh-hook user/repo`. You will see some informational text on what you need to do to finalize the hook, including a link to click to authorize the creation of the webhook. You will be required to authorize the Github application to read/write your webhooks (see [L167-168](https://github.com/sopel-irc/sopel-github/blob/master/sopel_modules/github/webhook.py#L167-L168)) but this should be the _only_ permissions we need.
 
 ```
 <@maxpowa> .gh-hook maxpowa/sopel-github
