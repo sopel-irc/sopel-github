@@ -1,0 +1,10 @@
+Changes in 0.1.3
+================
+
+Meta:
+* Moved to Sopel organization on Github; new maintainer.
+
+Changed:
+* Uses requests instead of deprecated sopel.web functions. (Sopel itself
+  requires requests, so we don't have to.)
+* Fetched git.io links use HTTPS now.
