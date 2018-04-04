@@ -17,8 +17,8 @@ Copyright 2015 Max Gurela
 from __future__ import unicode_literals
 
 import re
+import requests
 
-from sopel import web
 from sopel.formatting import color
 
 current_row = None
@@ -347,8 +347,8 @@ def fmt_status_message(payload=None):
 
 def shorten_url(url):
     try:
-        res, headers = web.post('http://git.io', 'url=' + web.quote(url), return_headers=True)
-        return headers['location']
+        res = requests.post('https://git.io', 'url=' + url)
+        return res.headers['location']
     except:
         return url
 

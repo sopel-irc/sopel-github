@@ -11,7 +11,7 @@ Copyright 2015 Max Gurela
 """
 
 from __future__ import unicode_literals
-from sopel import web, tools
+from sopel import tools
 from sopel.module import commands, rule, OP, NOLIMIT, example, require_chanmsg
 from sopel.formatting import bold, color
 from sopel.tools.time import get_timezone, format_time
@@ -32,6 +32,7 @@ else:
     from urllib.parse import urlencode
     from urllib.error import HTTPError
 import json
+import requests
 import re
 import datetime
 
@@ -102,7 +103,7 @@ def fetch_api_endpoint(bot, url):
     oauth = ''
     if bot.config.github.client_id and bot.config.github.secret:
         oauth = '?client_id=%s&client_secret=%s' % (bot.config.github.client_id, bot.config.github.secret)
-    return web.get(url + oauth)
+    return requests.get(url + oauth).text
 
 
 @rule('.*%s.*' % issueURL)
@@ -243,8 +244,8 @@ def github_repo(bot, trigger, match=None):
             github.__version__, github.__author__, github.__repo__))
 
     if repo.lower() == 'status':
-        current = json.loads(web.get('https://status.github.com/api/status.json'))
-        lastcomm = json.loads(web.get('https://status.github.com/api/last-message.json'))
+        current = json.loads(requests.get('https://status.github.com/api/status.json').text)
+        lastcomm = json.loads(requests.get('https://status.github.com/api/last-message.json').text)
 
         status = current['status']
         if status == 'major':
