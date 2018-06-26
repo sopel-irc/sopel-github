@@ -103,12 +103,8 @@ class StoppableWSGIRefServer(bottle.ServerAdapter):
 def get_targets(repo):
     conn = sopel_instance.db.connect()
     c = conn.cursor()
-
-    #sopel_instance.msg('#Inumuta', 'Checking db for '+repo)
     c.execute('SELECT * FROM gh_hooks WHERE repo_name = ? AND enabled = 1', (repo.lower(), ))
-    result = c.fetchall()
-    #sopel_instance.msg('#Inumuta', 'Result: '+json.dumps(result))
-    return result
+    return c.fetchall
 
 
 @bottle.get("/webhook")

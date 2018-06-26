@@ -388,5 +388,3 @@ def get_formatted_response(payload, row):
         messages.append(fmt_status_message())
 
     return messages
-#    for message in messages:
-#        sopel_instance.msg(row[0], message)
