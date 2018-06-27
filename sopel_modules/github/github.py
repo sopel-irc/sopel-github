@@ -240,7 +240,7 @@ def github_repo(bot, trigger, match=None):
     repo = match.group(2) or match.group(1)
 
     if repo.lower() == 'version':
-        return bot.say('[idlerpg] Version {} by {}, report issues at {}'.format(
+        return bot.say('[Github] Version {} by {}, report issues at {}'.format(
             github.__version__, github.__author__, github.__repo__))
 
     if repo.lower() == 'status':
