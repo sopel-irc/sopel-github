@@ -1,6 +1,6 @@
 # coding=utf8
 """
-formatting.py - Sopel Github Module
+formatting.py - Sopel GitHub Module
 Copyright 2015 Max Gurela
 
  _______ __ __   __           __

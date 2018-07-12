@@ -1,6 +1,6 @@
 # coding=utf8
 """
-webhook.py - Sopel Github Module
+webhook.py - Sopel GitHub Module
 Copyright 2015 Max Gurela
 
  _______ __ __   __           __
@@ -80,7 +80,7 @@ def shutdown_webhook(sopel):
         print('Stopping webhook server')
         sopel.memory['gh_webhook_server'].stop()
         sopel.memory['gh_webhook_thread'].join()
-        print('Github webhook shutdown complete')
+        print('GitHub webhook shutdown complete')
 
 
 class StoppableWSGIRefServer(bottle.ServerAdapter):

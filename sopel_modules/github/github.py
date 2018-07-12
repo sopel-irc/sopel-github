@@ -1,6 +1,6 @@
 # coding=utf8
 """
-github.py - Sopel Github Module
+github.py - Sopel GitHub Module
 Copyright 2015 Max Gurela
 
  _______ __ __   __           __
@@ -52,7 +52,7 @@ repoRegex = re.compile('github\.com/([^ /]+?)/([^ /]+)/?(?!\S)')
 sopel_instance = None
 
 
-class GithubSection(StaticSection):
+class GitHubSection(StaticSection):
     client_id = ValidatedAttribute('client_id', default=None)
     secret    = ValidatedAttribute('secret', default=None)
     webhook   = ValidatedAttribute('webhook', bool, default=False)
@@ -62,9 +62,9 @@ class GithubSection(StaticSection):
 
 
 def configure(config):
-    config.define_section('github', GithubSection, validate=False)
-    config.github.configure_setting('client_id', 'Github API Client ID')
-    config.github.configure_setting('secret',    'Github API Client Secret')
+    config.define_section('github', GitHubSection, validate=False)
+    config.github.configure_setting('client_id', 'GitHub API Client ID')
+    config.github.configure_setting('secret',    'GitHub API Client Secret')
     config.github.configure_setting('webhook',   'Enable webhook listener functionality')
     if config.github.webhook:
         config.github.configure_setting('webhook_host', 'Listen IP for incoming webhooks (0.0.0.0 for all IPs)')
@@ -73,7 +73,7 @@ def configure(config):
 
 
 def setup(sopel):
-    sopel.config.define_section('github', GithubSection)
+    sopel.config.define_section('github', GitHubSection)
     if not sopel.memory.contains('url_callbacks'):
         sopel.memory['url_callbacks'] = tools.SopelMemory()
     sopel.memory['url_callbacks'][regex] = issue_info
@@ -116,7 +116,7 @@ def issue_info(bot, trigger, match=None):
     try:
         raw = fetch_api_endpoint(bot, URL)
     except HTTPError:
-        bot.say('[Github] API returned an error.')
+        bot.say('[GitHub] API returned an error.')
         return NOLIMIT
     data = json.loads(raw)
     try:
@@ -127,14 +127,14 @@ def issue_info(bot, trigger, match=None):
         else:
             body = data['body'].split('\n')[0]
     except (KeyError):
-        bot.say('[Github] API says this is an invalid issue. Please report this if you know it\'s a correct link!')
+        bot.say('[GitHub] API says this is an invalid issue. Please report this if you know it\'s a correct link!')
         return NOLIMIT
 
     if body.strip() == '':
         body = 'No description provided.'
 
     response = [
-        bold('[Github]'),
+        bold('[GitHub]'),
         ' [',
         match.group(1),
         ' #',
@@ -160,7 +160,7 @@ def commit_info(bot, trigger, match=None):
     try:
         raw = fetch_api_endpoint(bot, URL)
     except HTTPError:
-        bot.say('[Github] API returned an error.')
+        bot.say('[GitHub] API returned an error.')
         return NOLIMIT
     data = json.loads(raw)
     try:
@@ -169,14 +169,14 @@ def commit_info(bot, trigger, match=None):
         else:
             body = data['commit']['message'].split('\n')[0]
     except (KeyError):
-        bot.say('[Github] API says this is an invalid commit. Please report this if you know it\'s a correct link!')
+        bot.say('[GitHub] API says this is an invalid commit. Please report this if you know it\'s a correct link!')
         return NOLIMIT
 
     if body.strip() == '':
         body = 'No commit message provided.'
 
     response = [
-        bold('[Github]'),
+        bold('[GitHub]'),
         ' [',
         match.group(1),
         '] ',
@@ -198,14 +198,14 @@ def get_data(bot, trigger, URL):
         raw = fetch_api_endpoint(bot, URL)
         rawLang = fetch_api_endpoint(bot, URL + '/languages')
     except HTTPError:
-        bot.say('[Github] API returned an error.')
+        bot.say('[GitHub] API returned an error.')
         return NOLIMIT
     data = json.loads(raw)
     langData = list(json.loads(rawLang).items())
     langData = sorted(langData, key=operator.itemgetter(1), reverse=True)
 
     if 'message' in data:
-        return bot.say('[Github] %s' % data['message'])
+        return bot.say('[GitHub] %s' % data['message'])
 
     langColors = deque(['12', '08', '09', '13'])
 
@@ -240,7 +240,7 @@ def github_repo(bot, trigger, match=None):
     repo = match.group(2) or match.group(1)
 
     if repo.lower() == 'version':
-        return bot.say('[Github] Version {} by {}, report issues at {}'.format(
+        return bot.say('[GitHub] Version {} by {}, report issues at {}'.format(
             github.__version__, github.__author__, github.__repo__))
 
     if repo.lower() == 'status':
@@ -268,7 +268,7 @@ def github_repo(bot, trigger, match=None):
             timezone = 'UTC'
         lastcomm['created_on'] = format_time(bot.db, bot.config, timezone, trigger.nick, trigger.sender, from_utc(lastcomm['created_on']))
 
-        return bot.say('[Github] Current Status: ' + status + ' | Last Message: ' + lstatus + ': ' + lastcomm['body'] + ' (' + lastcomm['created_on'] + ')')
+        return bot.say('[GitHub] Current Status: ' + status + ' | Last Message: ' + lstatus + ': ' + lastcomm['body'] + ' (' + lastcomm['created_on'] + ')')
     elif repo.lower() == 'rate-limit':
         return bot.say(fetch_api_endpoint(bot, 'https://api.github.com/rate_limit'))
 
@@ -293,7 +293,7 @@ def fmt_response(bot, trigger, URL, from_regex=False):
         return
 
     response = [
-        bold('[Github]'),
+        bold('[GitHub]'),
         ' ',
         str(data['full_name'])
     ]
@@ -326,7 +326,7 @@ def fmt_response(bot, trigger, URL, from_regex=False):
 
 
 @commands('gh-hook')
-@require_chanmsg('[Github] Github hooks can only be configured in a channel')
+@require_chanmsg('[GitHub] GitHub hooks can only be configured in a channel')
 @example('.gh-hook maxpowa/Inumuta enable')
 def configure_repo_messages(bot, trigger):
     '''
@@ -375,7 +375,7 @@ def configure_repo_messages(bot, trigger):
 
 
 @commands('gh-hook-color')
-@require_chanmsg('[Github] Github hooks can only be configured in a channel')
+@require_chanmsg('[GitHub] GitHub hooks can only be configured in a channel')
 @example('.gh-hook-color maxpowa/Inumuta 13 15 6 6 14 2')
 def configure_repo_colors(bot, trigger):
     '''
