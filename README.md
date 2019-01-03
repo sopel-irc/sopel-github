@@ -14,7 +14,7 @@ pip install .
 
 ## Out-of-the-box Functionality
 
-Detects when github URLs are posted and takes over URL handling of them, pretty printing details of
+Detects when GitHub URLs are posted and takes over URL handling of them, pretty printing details of
 
  * Commits
  * Issues
@@ -47,7 +47,7 @@ Webhook functionality is __disabled__ by default. It requires slightly more tech
 #### Configuring behind a proxy
 This is the __recommended__ way of configuring the webhook functionality, as there may be security flaws in the other method.
 
-First, configure the github module. You may do so by running `sopel --configure-modules` or changing the config file directly.
+First, configure the GitHub module. You may do so by running `sopel --configure-modules` or changing the config file directly.
 ```
 [github]
 webhook = True
