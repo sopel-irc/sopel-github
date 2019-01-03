@@ -38,9 +38,6 @@ Github APIs have some fairly lenient unauthorized request limits, but you may fi
 
 __IF YOU PLAN ON USING WEBHOOK FUNCTIONALITY:__ You _must_ properly fill out the "Authorization callback URL" to match the external URL you plan to use for the webhook.
 
-For example, my bot's application configuration
-![Inumuta's application](https://u.xpw.us/gcfzum.png)
-
 
 ## Webhook Functionality
 
