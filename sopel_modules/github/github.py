@@ -344,7 +344,7 @@ def configure_repo_messages(bot, trigger):
     repo_name = trigger.group(3).lower()
 
     if not '/' in repo_name or 'http://' in repo_name or 'https://' in repo_name:
-        return bot.say('Invalid repo formatting, see ".help gh-hook" for an example')
+        return bot.say('Invalid repo formatting, see "{}help gh-hook" for an example'.format(bot.config.core.help_prefix))
 
     enabled = True if not trigger.group(4) or trigger.group(4).lower() == 'enable' else False
 
@@ -363,13 +363,13 @@ def configure_repo_messages(bot, trigger):
         c.execute('''INSERT INTO gh_hooks (channel, repo_name, enabled) VALUES (?, ?, ?)''', (channel, repo_name, enabled))
         bot.say("Successfully enabled listening for {repo}'s events in {chan}.".format(chan=channel, repo=repo_name))
         bot.say('Great! Please allow me to create my webhook by authorizing via this link: ' + shorten_url(auth_url))
-        bot.say('Once that webhook is successfully created, I\'ll post a message in here. Give me about a minute or so to set it up after you authorize. You can configure the colors that I use to display webhooks with .gh-hook-color')
+        bot.say('Once that webhook is successfully created, I\'ll post a message in here. Give me about a minute or so to set it up after you authorize. You can configure the colors that I use to display webhooks with {}gh-hook-color'.format(bot.config.core.help_prefix))
     else:
         c.execute('''UPDATE gh_hooks SET enabled = ? WHERE channel = ? AND repo_name = ?''', (enabled, channel, repo_name))
         bot.say("Successfully {state} the subscription to {repo}'s events".format(state='enabled' if enabled else 'disabled', repo=repo_name))
         if enabled:
             bot.say('Great! Please allow me to create my webhook by authorizing via this link: ' + shorten_url(auth_url))
-            bot.say('Once that webhook is successfully created, I\'ll post a message in here. Give me about a minute or so to set it up after you authorize. You can configure the colors that I use to display webhooks with .gh-hook-color')
+            bot.say('Once that webhook is successfully created, I\'ll post a message in here. Give me about a minute or so to set it up after you authorize. You can configure the colors that I use to display webhooks with {}gh-hook-color'.format(bot.config.core.help_prefix))
     conn.commit()
     conn.close()
 
@@ -394,10 +394,10 @@ def configure_repo_colors(bot, trigger):
     try:
         colors = [int(c) % 16 for c in trigger.group(2).replace(trigger.group(3), '', 1).split()]
     except:
-        return bot.say('You must provide exactly 6 colors that are integers and are space separated. See ".help gh-hook-color" for more information.')
+        return bot.say('You must provide exactly 6 colors that are integers and are space separated. See "{}help gh-hook-color" for more information.'.format(bot.config.core.help_prefix))
 
     if len(colors) != 6:
-        return bot.say('You must provide exactly 6 colors! See ".help gh-hook-color" for more information.')
+        return bot.say('You must provide exactly 6 colors! See "{}help gh-hook-color" for more information.'.format(bot.config.core.help_prefix))
 
     conn = bot.db.connect()
     c = conn.cursor()
@@ -405,7 +405,7 @@ def configure_repo_colors(bot, trigger):
     c.execute('SELECT * FROM gh_hooks WHERE channel = ? AND repo_name = ?', (channel, repo_name))
     result = c.fetchone()
     if not result:
-        return bot.say('Please use ".gh-hook {} enable" before attempting to configure colors!'.format(repo_name))
+        return bot.say('Please use "{}gh-hook {} enable" before attempting to configure colors!'.format(bot.config.core.help_prefix, repo_name))
     else:
         combined = colors
         combined.append(channel)
