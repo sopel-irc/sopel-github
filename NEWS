@@ -3,9 +3,11 @@ Changes in 0.1.4
 
 Changed:
 * "GitHub" is now properly capitalized everywhere in text output. (#9)
+* Usage output uses `help_prefix` from config instead of hardcoded `.` (#12)
 
 Fixed:
 * git.io shortening was cutting off GET parameters of input links. (#11)
+
 
 Changes in 0.1.3
 ================
