@@ -104,7 +104,7 @@ def get_targets(repo):
     conn = sopel_instance.db.connect()
     c = conn.cursor()
     c.execute('SELECT * FROM gh_hooks WHERE repo_name = ? AND enabled = 1', (repo.lower(), ))
-    return c.fetchall
+    return c.fetchall()
 
 
 @bottle.get("/webhook")
