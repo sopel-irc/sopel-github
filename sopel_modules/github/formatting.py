@@ -207,7 +207,7 @@ def fmt_commit_comment_summary(payload=None, row=None):
 
     short = payload['comment']['body'].split('\r\n', 2)[0]
     short = short + '...' if short != payload['comment']['body'] else short
-    return '[{}] {} comment on commit {}: {}'.format(
+    return '[{}] {} commented on commit {}: {}'.format(
                   fmt_repo(payload['repository']['name']),
                   fmt_name(payload['sender']['login']),
                   fmt_hash(payload['comment']['commit_id'][0:7]),
@@ -294,7 +294,7 @@ def fmt_pull_request_review_comment_summary_message(payload=None):
     short = payload['comment']['body'].split('\r\n', 2)[0]
     short = short + '...' if short != payload['comment']['body'] else short
     sha1 = payload['comment']['commit_id']
-    return '[{}] {} comment on pull request #{} {}: {}'.format(
+    return '[{}] {} commented on pull request #{} {}: {}'.format(
                   fmt_repo(payload['repository']['name']),
                   fmt_name(payload['sender']['login']),
                   payload['pull_request']['number'],
