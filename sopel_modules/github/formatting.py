@@ -22,6 +22,13 @@ import requests
 
 from sopel.formatting import color
 
+try:
+    import emoji
+except ImportError:
+    emojize = lambda text: text
+else:
+    emojize = lambda text: emoji.emojize(text, use_aliases=True)
+
 current_row = None
 current_payload = None
 
@@ -232,7 +239,7 @@ def fmt_commit_comment_summary(payload=None, row=None):
                   fmt_repo(payload['repository']['name']),
                   fmt_name(payload['sender']['login']),
                   fmt_hash(payload['comment']['commit_id'][0:7]),
-                  short)
+                  emojize(short))
 
 
 def fmt_issue_summary_message(payload=None):
@@ -327,7 +334,7 @@ def fmt_issue_comment_summary_message(payload=None):
                   fmt_name(payload['sender']['login']),
                   issue_type,
                   payload['issue']['number'],
-                  short)
+                  emojize(short))
 
 
 def fmt_pull_request_summary_message(payload=None):
@@ -416,7 +423,7 @@ def fmt_pull_request_review_comment_summary_message(payload=None):
                   fmt_name(payload['sender']['login']),
                   payload['pull_request']['number'],
                   fmt_hash(sha1[0:7]),
-                  short)
+                  emojize(short))
 
 
 def fmt_gollum_summary_message(payload=None):

@@ -19,7 +19,7 @@ from sopel.tools.time import get_timezone, format_time
 from sopel.config.types import StaticSection, ValidatedAttribute
 
 from . import formatting
-from .formatting import shorten_url
+from .formatting import shorten_url, emojize
 from .webhook import setup_webhook, shutdown_webhook
 
 import operator
@@ -167,7 +167,7 @@ def issue_info(bot, trigger, match=None):
     if ('title' in data):
         response.append(data['title'])
         response.append(bold(' | '))
-    response.append(body)
+    response.append(emojize(body))
 
     bot.say(''.join(response))
 

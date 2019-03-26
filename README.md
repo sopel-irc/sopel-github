@@ -42,6 +42,8 @@ example:
         | Watchers: 1 | Forks: 8 | Network: 8 | Open Issues: 18 |
         https://github.com/sopel-irc/sopel-github
 ```
+If you have [the `emoji` package](https://pypi.org/project/emoji/) installed, `:emoji_name:`s will be converted to Unicode emoji in the output.
+
 
 ### API Keys & Usage
 
