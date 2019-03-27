@@ -280,8 +280,10 @@ def fmt_pull_request_review_summary_message(payload=None):
         payload = current_payload
 
     action = payload['review']['state']
-    if re.match('(comment|request)', action):
-        action = action + ' on'
+    if action == 'commented':
+        action = 'left a review on'
+    elif action == 'changes_requested':
+        action = 'requested changes on'
 
     body = payload['review']['body']
     short = ''
