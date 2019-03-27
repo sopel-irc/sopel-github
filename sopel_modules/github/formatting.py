@@ -304,10 +304,15 @@ def fmt_pull_request_dismissal_message(payload=None):
     if not payload:
         payload = current_payload
 
-    return '[{}] {} dismissed {}\'s review on pull request #{}'.format(
+    if payload['sender']['login'] == payload['review']['user']['login']:
+        whose = 'their'
+    else:
+        whose = fmt_name(payload['review']['user']['login']) + '\'s'
+
+    return '[{}] {} dismissed {} review on pull request #{}'.format(
                   fmt_repo(payload['repository']['name']),
                   fmt_name(payload['sender']['login']),
-                  fmt_name(payload['review']['user']['login']),
+                  whose,
                   payload['pull_request']['number'])
 
 
