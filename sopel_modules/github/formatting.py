@@ -262,13 +262,18 @@ def fmt_issue_comment_summary_message(payload=None):
 def fmt_pull_request_summary_message(payload=None):
     if not payload:
         payload = current_payload
+
     base_ref = payload['pull_request']['base']['label'].split(':')[-1]
     head_ref = payload['pull_request']['head']['label'].split(':')[-1]
+
+    action = payload['action']
+    if action == 'closed' and payload['pull_request']['merged']:
+        action = 'merged'
 
     return '[{}] {} {} pull request #{}: {} ({}...{})'.format(
                   fmt_repo(payload['repository']['name']),
                   fmt_name(payload['sender']['login']),
-                  payload['action'],
+                  action,
                   payload['pull_request']['number'],
                   payload['pull_request']['title'],
                   fmt_branch(base_ref),
