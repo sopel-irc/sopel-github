@@ -1,3 +1,17 @@
+Changes in 0.2.0a0
+==================
+
+Added:
+* Conversion of :emoji: to Unicode emoji in some places, if the required
+  library is installed (#17)
+* Handling of PR reviews and release events (#20, #21)
+
+Changed:
+* Merged PRs are now distinct from closed PRs (#18)
+* Grammar updated, mostly around comment-type notifications (#15)
+* Edits to existing comments are ignored (no more duplicates) (#16)
+
+
 Changes in 0.1.5
 ================
 
@@ -6,6 +20,7 @@ Fixed:
 
 Meta:
 * PyPI package description should be rendered to HTML now (fixed content-type)
+
 
 Changes in 0.1.4
 ================
