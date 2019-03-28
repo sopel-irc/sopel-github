@@ -345,6 +345,17 @@ def fmt_status_message(payload=None):
                   payload['state'])
 
 
+def fmt_release_message(payload=None):
+    if not payload:
+        payload = current_payload
+
+    return '[{}] {} released {}{}'.format(
+        fmt_repo(payload['repository']['name']),
+        fmt_name(payload['release']['author']['login']),
+        payload['release']['name'] or payload['release']['tag_name'],
+        ' (prerelease)' if payload['release']['prerelease'] else '')
+
+
 def shorten_url(url):
     try:
         res = requests.post('https://git.io', {'url': url})
@@ -386,5 +397,9 @@ def get_formatted_response(payload, row):
         messages.append(fmt_watch_message())
     elif payload['event'] == 'status':
         messages.append(fmt_status_message())
+    elif payload['event'] == 'release':
+        if payload['action'] == 'published':
+            # Currently the only possible action, but other events might eventually fire webhooks too
+            messages.append(fmt_release_message() + " " + fmt_url(shorten_url(payload['release']['html_url'])))
 
     return messages
