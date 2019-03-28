@@ -21,6 +21,13 @@ import requests
 
 from sopel.formatting import color
 
+try:
+    import emoji
+except ImportError:
+    emojize = lambda text: text
+else:
+    emojize = lambda text: emoji.emojize(text, use_aliases=True)
+
 current_row = None
 current_payload = None
 
@@ -134,6 +141,16 @@ def get_push_summary_url(payload=None):
         return payload['compare']
 
 
+def get_issue_type(payload=None):
+    if not payload:
+        payload = current_payload
+
+    if '/pull/' in payload['issue']['html_url']:
+        return "pull request"
+    else:
+        return "issue"
+
+
 def fmt_push_summary_message(payload=None, row=None):
     if not payload:
         payload = current_payload
@@ -197,11 +214,11 @@ def fmt_commit_comment_summary(payload=None, row=None):
 
     short = payload['comment']['body'].split('\r\n', 2)[0]
     short = short + '...' if short != payload['comment']['body'] else short
-    return '[{}] {} comment on commit {}: {}'.format(
+    return '[{}] {} commented on commit {}: {}'.format(
                   fmt_repo(payload['repository']['name']),
                   fmt_name(payload['sender']['login']),
                   fmt_hash(payload['comment']['commit_id'][0:7]),
-                  short)
+                  emojize(short))
 
 
 def fmt_issue_summary_message(payload=None):
@@ -250,29 +267,78 @@ def fmt_issue_label_message(payload=None):
 def fmt_issue_comment_summary_message(payload=None):
     if not payload:
         payload = current_payload
+
+    issue_type = get_issue_type(payload)
     short = payload['comment']['body'].split('\r\n', 2)[0]
     short = short + '...' if short != payload['comment']['body'] else short
-    return '[{}] {} comment on issue #{}: {}'.format(
+    return '[{}] {} commented on {} #{}: {}'.format(
                   fmt_repo(payload['repository']['name']),
                   fmt_name(payload['sender']['login']),
+                  issue_type,
                   payload['issue']['number'],
-                  short)
+                  emojize(short))
 
 
 def fmt_pull_request_summary_message(payload=None):
     if not payload:
         payload = current_payload
+
     base_ref = payload['pull_request']['base']['label'].split(':')[-1]
     head_ref = payload['pull_request']['head']['label'].split(':')[-1]
+
+    action = payload['action']
+    if action == 'closed' and payload['pull_request']['merged']:
+        action = 'merged'
 
     return '[{}] {} {} pull request #{}: {} ({}...{})'.format(
                   fmt_repo(payload['repository']['name']),
                   fmt_name(payload['sender']['login']),
-                  payload['action'],
+                  action,
                   payload['pull_request']['number'],
                   payload['pull_request']['title'],
                   fmt_branch(base_ref),
                   fmt_branch(head_ref))
+
+
+def fmt_pull_request_review_summary_message(payload=None):
+    if not payload:
+        payload = current_payload
+
+    action = payload['review']['state']
+    if action == 'commented':
+        action = 'left a review on'
+    elif action == 'changes_requested':
+        action = 'requested changes on'
+
+    body = payload['review']['body']
+    short = ''
+    if body:
+        short = body.split('\r\n', 2)[0]
+        short = short + '...' if short != body else short
+        short = ': ' + short
+
+    return '[{}] {} {} pull request #{}{}'.format(
+                  fmt_repo(payload['repository']['name']),
+                  fmt_name(payload['sender']['login']),
+                  action,
+                  payload['pull_request']['number'],
+                  short)
+
+
+def fmt_pull_request_dismissal_message(payload=None):
+    if not payload:
+        payload = current_payload
+
+    if payload['sender']['login'] == payload['review']['user']['login']:
+        whose = 'their'
+    else:
+        whose = fmt_name(payload['review']['user']['login']) + '\'s'
+
+    return '[{}] {} dismissed {} review on pull request #{}'.format(
+                  fmt_repo(payload['repository']['name']),
+                  fmt_name(payload['sender']['login']),
+                  whose,
+                  payload['pull_request']['number'])
 
 
 def fmt_pull_request_review_comment_summary_message(payload=None):
@@ -281,12 +347,12 @@ def fmt_pull_request_review_comment_summary_message(payload=None):
     short = payload['comment']['body'].split('\r\n', 2)[0]
     short = short + '...' if short != payload['comment']['body'] else short
     sha1 = payload['comment']['commit_id']
-    return '[{}] {} comment on pull request #{} {}: {}'.format(
+    return '[{}] {} left a file comment in pull request #{} {}: {}'.format(
                   fmt_repo(payload['repository']['name']),
                   fmt_name(payload['sender']['login']),
                   payload['pull_request']['number'],
                   fmt_hash(sha1[0:7]),
-                  short)
+                  emojize(short))
 
 
 def fmt_gollum_summary_message(payload=None):
@@ -345,6 +411,17 @@ def fmt_status_message(payload=None):
                   payload['state'])
 
 
+def fmt_release_message(payload=None):
+    if not payload:
+        payload = current_payload
+
+    return '[{}] {} released {}{}'.format(
+        fmt_repo(payload['repository']['name']),
+        fmt_name(payload['release']['author']['login']),
+        payload['release']['name'] or payload['release']['tag_name'],
+        ' (prerelease)' if payload['release']['prerelease'] else '')
+
+
 def shorten_url(url):
     try:
         res = requests.post('https://git.io', {'url': url})
@@ -368,6 +445,16 @@ def get_formatted_response(payload, row):
     elif payload['event'] == 'pull_request':
         if re.match('(open|close)', payload['action']):
             messages.append(fmt_pull_request_summary_message() + " " + fmt_url(shorten_url(payload['pull_request']['html_url'])))
+    elif payload['event'] == 'pull_request_review':
+        if payload['action'] == 'submitted' and payload['review']['state'] in ['approved', 'changes_requested', 'commented']:
+            if payload['review']['state'] == 'commented' and payload['review']['body'] == None:
+                # Probably an empty "review" fired by a pull_request_review_comment reply, which we'll get in a separate hook delivery.
+                # Wish GitHub didn't fire both events, but they do, even though it makes no sense.
+                # Either way, an empty review must be accompanied by comments, which will get handled when their hook(s) fire(s).
+                return
+            messages.append(fmt_pull_request_review_summary_message() + " " + fmt_url(shorten_url(payload['review']['html_url'])))
+        elif payload['action'] == 'dismissed':
+            messages.append(fmt_pull_request_dismissal_message() + " " + fmt_url(shorten_url(payload['review']['html_url'])))
     elif payload['event'] == 'pull_request_review_comment':
         messages.append(fmt_pull_request_review_comment_summary_message() + " " + fmt_url(shorten_url(payload['comment']['html_url'])))
     elif payload['event'] == 'issues':
@@ -377,7 +464,7 @@ def get_formatted_response(payload, row):
             messages.append(fmt_issue_assignee_message() + " " + fmt_url(shorten_url(payload['issue']['html_url'])))
         elif re.match('(labeled|unlabeled)', payload['action']):
             messages.append(fmt_issue_label_message() + " " + fmt_url(shorten_url(payload['issue']['html_url'])))
-    elif payload['event'] == 'issue_comment':
+    elif payload['event'] == 'issue_comment' and payload['action'] == 'created':
         messages.append(fmt_issue_comment_summary_message() + " " + fmt_url(shorten_url(payload['comment']['html_url'])))
     elif payload['event'] == 'gollum':
         url = payload['pages'][0]['html_url'] if len(payload['pages']) else payload['repository']['url'] + '/wiki'
@@ -386,5 +473,9 @@ def get_formatted_response(payload, row):
         messages.append(fmt_watch_message())
     elif payload['event'] == 'status':
         messages.append(fmt_status_message())
+    elif payload['event'] == 'release':
+        if payload['action'] == 'published':
+            # Currently the only possible action, but other events might eventually fire webhooks too
+            messages.append(fmt_release_message() + " " + fmt_url(shorten_url(payload['release']['html_url'])))
 
     return messages

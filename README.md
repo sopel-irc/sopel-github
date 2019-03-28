@@ -31,6 +31,8 @@ Pretty prints repository details on command, using `.gh user/repo` or `.github u
 <+salty> .gh maxpowa/sopel-github
 <Sopel> [Github] maxpowa/sopel-github - Github module for Sopel | 100.0% Python | Last Push: 2015-10-16 - 04:00:32UTC | Stargazers: 0 | Watchers: 0 | Forks: 0 | Network: 0 | Open Issues: 0 | https://github.com/maxpowa/sopel-github
 ```
+If you have [the `emoji` package](https://pypi.org/project/emoji/) installed, `:emoji_name:`s will be converted to Unicode emoji in the output.
+
 
 ### API Keys & Usage
 
