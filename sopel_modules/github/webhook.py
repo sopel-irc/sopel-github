@@ -107,32 +107,14 @@ def get_targets(repo):
     return c.fetchall()
 
 
-@bottle.get("/webhook")
-def show_hook_info():
-    return 'Listening for webhook connections!'
-
-
-@bottle.post("/webhook")
-def webhook():
-    event = bottle.request.headers.get('X-GitHub-Event') or 'ping'
-
-    try:
-        payload = bottle.request.json
-    except:
-        return bottle.abort(400, 'Something went wrong!')
-
-    if event == 'ping':
-        channels = get_targets(payload['repository']['full_name'])
-        for chan in channels:
-            sopel_instance.msg(chan[0], '[{}] {}: {} (Your webhook is now enabled)'.format(
-                          fmt_repo(payload['repository']['name'], chan),
-                          fmt_name(payload['sender']['login'], chan),
+def process_payload(payload, targets):
+    if payload['event'] == 'ping':
+        for row in targets:
+            sopel_instance.msg(row[0], '[{}] {}: {} (Your webhook is now enabled)'.format(
+                          fmt_repo(payload['repository']['name'], row),
+                          fmt_name(payload['sender']['login'], row),
                           payload['zen']))
-        return '{"channels":' + json.dumps([chan[0] for chan in channels]) + '}'
-
-    payload['event'] = event
-
-    targets = get_targets(payload['repository']['full_name'])
+        return
 
     for row in targets:
         messages = get_formatted_response(payload, row)
@@ -140,7 +122,28 @@ def webhook():
         for message in messages:
             sopel_instance.msg(row[0], message)
 
-    return '{"channels":' + json.dumps([chan[0] for chan in targets]) + '}'
+
+@bottle.get("/webhook")
+def show_hook_info():
+    return 'Listening for webhook connections!'
+
+
+@bottle.post("/webhook")
+def webhook():
+    try:
+        payload = bottle.request.json
+    except:
+        return bottle.abort(400, 'Something went wrong!')
+
+    payload['event'] = bottle.request.headers.get('X-GitHub-Event') or 'ping'
+    targets = get_targets(payload['repository']['full_name'])
+
+    # process hook payload in background
+    payload_handler = Thread(target=process_payload, args=(payload, targets))
+    payload_handler.start()
+
+    # send HTTP response ASAP, hopefully within GitHub's very short timeout
+    return '{"channels":' + json.dumps([target[0] for target in targets]) + '}'
 
 
 @bottle.get('/auth')
