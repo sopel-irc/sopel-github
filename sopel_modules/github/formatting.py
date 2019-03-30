@@ -134,6 +134,16 @@ def get_push_summary_url(payload=None):
         return payload['compare']
 
 
+def get_issue_type(payload=None):
+    if not payload:
+        payload = current_payload
+
+    if '/pull/' in payload['issue']['html_url']:
+        return "pull request"
+    else:
+        return "issue"
+
+
 def fmt_push_summary_message(payload=None, row=None):
     if not payload:
         payload = current_payload
@@ -197,7 +207,7 @@ def fmt_commit_comment_summary(payload=None, row=None):
 
     short = payload['comment']['body'].split('\r\n', 2)[0]
     short = short + '...' if short != payload['comment']['body'] else short
-    return '[{}] {} comment on commit {}: {}'.format(
+    return '[{}] {} commented on commit {}: {}'.format(
                   fmt_repo(payload['repository']['name']),
                   fmt_name(payload['sender']['login']),
                   fmt_hash(payload['comment']['commit_id'][0:7]),
@@ -250,11 +260,14 @@ def fmt_issue_label_message(payload=None):
 def fmt_issue_comment_summary_message(payload=None):
     if not payload:
         payload = current_payload
+
+    issue_type = get_issue_type(payload)
     short = payload['comment']['body'].split('\r\n', 2)[0]
     short = short + '...' if short != payload['comment']['body'] else short
-    return '[{}] {} comment on issue #{}: {}'.format(
+    return '[{}] {} commented on {} #{}: {}'.format(
                   fmt_repo(payload['repository']['name']),
                   fmt_name(payload['sender']['login']),
+                  issue_type,
                   payload['issue']['number'],
                   short)
 
@@ -281,7 +294,7 @@ def fmt_pull_request_review_comment_summary_message(payload=None):
     short = payload['comment']['body'].split('\r\n', 2)[0]
     short = short + '...' if short != payload['comment']['body'] else short
     sha1 = payload['comment']['commit_id']
-    return '[{}] {} comment on pull request #{} {}: {}'.format(
+    return '[{}] {} left a file comment in pull request #{} {}: {}'.format(
                   fmt_repo(payload['repository']['name']),
                   fmt_name(payload['sender']['login']),
                   payload['pull_request']['number'],
