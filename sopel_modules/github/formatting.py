@@ -138,7 +138,9 @@ def get_issue_type(payload=None):
     if not payload:
         payload = current_payload
 
-    if '/pull/' in payload['issue']['html_url']:
+    is_pr = ('pull_request' in payload or ('issue' in payload and '/pull/' in payload['issue']['html_url']))
+
+    if is_pr:
         return "pull request"
     else:
         return "issue"
