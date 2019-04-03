@@ -455,7 +455,7 @@ def get_formatted_response(payload, row):
             messages.append(fmt_pull_request_review_summary_message() + " " + fmt_url(shorten_url(payload['review']['html_url'])))
         elif payload['action'] == 'dismissed':
             messages.append(fmt_pull_request_dismissal_message() + " " + fmt_url(shorten_url(payload['review']['html_url'])))
-    elif payload['event'] == 'pull_request_review_comment':
+    elif payload['event'] == 'pull_request_review_comment' and payload['action'] == 'created':
         messages.append(fmt_pull_request_review_comment_summary_message() + " " + fmt_url(shorten_url(payload['comment']['html_url'])))
     elif payload['event'] == 'issues':
         if re.match('(open|close)', payload['action']):
