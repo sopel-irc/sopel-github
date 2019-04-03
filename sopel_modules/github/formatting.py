@@ -145,7 +145,9 @@ def get_issue_type(payload=None):
     if not payload:
         payload = current_payload
 
-    if '/pull/' in payload['issue']['html_url']:
+    is_pr = ('pull_request' in payload or ('issue' in payload and '/pull/' in payload['issue']['html_url']))
+
+    if is_pr:
         return "pull request"
     else:
         return "issue"
@@ -243,11 +245,12 @@ def fmt_issue_assignee_message(payload=None):
     else:
         target = 'to ' if payload['action'] == 'assigned' else 'from '
         target = target + fmt_name(payload['assignee']['login']) 
-    return '[{}] {} {}{} issue #{} {}'.format(
+    return '[{}] {} {}{} {} #{} {}'.format(
                   fmt_repo(payload['repository']['name']),
                   fmt_name(payload['sender']['login']),
                   'self-' if self_assign else '',
                   payload['action'],
+                  get_issue_type(payload),
                   payload['issue']['number'],
                   target)
 
@@ -255,12 +258,13 @@ def fmt_issue_assignee_message(payload=None):
 def fmt_issue_label_message(payload=None):
     if not payload:
         payload = current_payload
-    return '[{}] {} {} the label \'{}\' {} issue #{}'.format(
+    return '[{}] {} {} the label \'{}\' {} {} #{}'.format(
                   fmt_repo(payload['repository']['name']),
                   fmt_name(payload['sender']['login']),
                   'added' if payload['action'] == 'labeled' else 'removed',
                   payload['label']['name'],
                   'to' if payload['action'] == 'labeled' else 'from',
+                  get_issue_type(payload),
                   payload['issue']['number'])
 
 
@@ -445,6 +449,10 @@ def get_formatted_response(payload, row):
     elif payload['event'] == 'pull_request':
         if re.match('(open|close)', payload['action']):
             messages.append(fmt_pull_request_summary_message() + " " + fmt_url(shorten_url(payload['pull_request']['html_url'])))
+        elif re.match('(assigned|unassigned)', payload['action']):
+            messages.append(fmt_issue_assignee_message() + " " + fmt_url(shorten_url(payload['pull_request']['html_url'])))
+        elif re.match('(labeled|unlabeled)', payload['action']):
+            messages.append(fmt_issue_label_message() + " " + fmt_url(shorten_url(payload['pull_request']['html_url'])))
     elif payload['event'] == 'pull_request_review':
         if payload['action'] == 'submitted' and payload['review']['state'] in ['approved', 'changes_requested', 'commented']:
             if payload['review']['state'] == 'commented' and payload['review']['body'] == None:
