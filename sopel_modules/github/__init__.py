@@ -9,6 +9,6 @@ from .github import *
 
 __author__ = 'maxpowa'
 __email__ = 'maxpowa@outlook.com'
-__version__ = '0.2.0a0'
+__version__ = '0.2.0a1'
 __repo__ = 'https://github.com/sopel-irc/sopel-github'
 

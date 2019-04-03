@@ -1,3 +1,12 @@
+Changes in 0.2.0a1
+==================
+
+Added:
+* Handle label & assignee events for PRs too, not just issues (#23)
+
+Changed:
+* Edits to review comments also ignored (#24)
+
 Changes in 0.2.0a0
 ==================
 
