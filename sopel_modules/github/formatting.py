@@ -153,6 +153,18 @@ def get_issue_type(payload=None):
         return "issue"
 
 
+def get_issue_or_pr_number(payload=None):
+    if not payload:
+        payload = current_payload
+
+    try:
+        number = payload['issue']['number']
+    except KeyError:
+        number = payload['pull_request']['number']
+
+    return number
+
+
 def fmt_push_summary_message(payload=None, row=None):
     if not payload:
         payload = current_payload
@@ -251,7 +263,7 @@ def fmt_issue_assignee_message(payload=None):
                   'self-' if self_assign else '',
                   payload['action'],
                   get_issue_type(payload),
-                  payload['issue']['number'],
+                  get_issue_or_pr_number(payload),
                   target)
 
 
@@ -265,7 +277,7 @@ def fmt_issue_label_message(payload=None):
                   payload['label']['name'],
                   'to' if payload['action'] == 'labeled' else 'from',
                   get_issue_type(payload),
-                  payload['issue']['number'])
+                  get_issue_or_pr_number(payload))
 
 
 def fmt_issue_comment_summary_message(payload=None):
