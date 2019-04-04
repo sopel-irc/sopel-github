@@ -1,3 +1,10 @@
+Changes in 0.2.0a2
+==================
+
+Fixed:
+* Polymorphism is hard in label/assignee events (getting the PR number caused
+  errors because sometimes GitHub *does* use `pull_request` instead of `issue`)
+
 Changes in 0.2.0a1
 ==================
 
