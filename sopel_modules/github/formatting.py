@@ -390,7 +390,7 @@ def get_formatted_response(payload, row):
             messages.append(fmt_issue_assignee_message() + " " + fmt_url(shorten_url(payload['issue']['html_url'])))
         elif re.match('(labeled|unlabeled)', payload['action']):
             messages.append(fmt_issue_label_message() + " " + fmt_url(shorten_url(payload['issue']['html_url'])))
-    elif payload['event'] == 'issue_comment':
+    elif payload['event'] == 'issue_comment' and payload['action'] == 'created':
         messages.append(fmt_issue_comment_summary_message() + " " + fmt_url(shorten_url(payload['comment']['html_url'])))
     elif payload['event'] == 'gollum':
         url = payload['pages'][0]['html_url'] if len(payload['pages']) else payload['repository']['url'] + '/wiki'
