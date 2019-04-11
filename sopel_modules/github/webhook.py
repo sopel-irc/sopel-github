@@ -134,6 +134,13 @@ def debug_log_request(request_headers, request_body):
     LOGGER.debug('Request: {}'.format(request_body.decode('utf-8')))
 
 
+def abort_request(status_code=400):
+    if sopel_instance.config.github.debug_mode:
+        LOGGER.warning('`debug_mode = True`; allowing unverified request...')
+        return None
+    return bottle.abort(status_code)
+
+
 def verify_request():
     request_headers = bottle.request.headers
     request_body = bottle.request.body.read()
@@ -141,7 +148,7 @@ def verify_request():
     if not request_headers.get('X-Hub-Signature'):
         LOGGER.error('Request is missing a hash signature.')
         debug_log_request(request_headers, request_body)
-        return bottle.abort(400)  # 400 Bad Request; client doesn't need to know why.
+        return abort_request(400)  # 400 Bad Request; client doesn't need to know why.
 
     digest_name, payload_signature = request_headers.get('X-Hub-Signature').split('=')
     # Currently, Github only uses 'SHA1'
@@ -154,7 +161,7 @@ def verify_request():
     except AttributeError:
         LOGGER.error('Unsupported signature digest: {}'.format(digest_name))
         debug_log_request(request_headers, request_body)
-        return bottle.abort(400)  # 400 Bad Request; maybe Github added new digests?
+        return abort_request(400)  # 400 Bad Request; maybe Github added new digests?
 
     secret = sopel_instance.config.github.webhook_secret
     hash_ = hmac.new(secret.encode('utf-8') if secret else None, msg=request_body, digestmod=digest_mod)
@@ -162,7 +169,7 @@ def verify_request():
     if payload_signature != expected_signature:
         LOGGER.error('Request signature mismatch.')
         debug_log_request(request_headers, request_body)
-        return bottle.abort(400)  # 400 Bad Request; client doesn't need to know why.
+        return abort_request(400)  # 400 Bad Request; client doesn't need to know why.
 
 
 @bottle.get("/webhook")
