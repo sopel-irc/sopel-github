@@ -237,6 +237,9 @@ def handle_auth_response():
             }
         }
 
+        if sopel_instance.config.github.webhook_secret:
+            data['config']['secret'] = sopel_instance.config.github.webhook_secret
+
         raw = requests.post('https://api.github.com/repos/{}/hooks?access_token={}'.format(repo, access_token), data=json.dumps(data))
         res = json.loads(raw.text)
 
