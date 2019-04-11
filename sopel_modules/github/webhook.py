@@ -174,7 +174,9 @@ def verify_request():
 
 @bottle.get("/webhook")
 def show_hook_info():
-    return 'Listening for webhook connections!'
+    if sopel_instance.config.github.debug_mode:
+        return 'Listening for webhook connections!'
+    return bottle.abort(400)  # 400 Bad Request; this route is only useful for testing.
 
 
 @bottle.post("/webhook")
