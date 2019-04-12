@@ -152,7 +152,9 @@ def verify_request():
         return abort_request(401, msg)  # 401 Unauthorized; missing required header
 
     digest_name, payload_signature = request_headers.get('X-Hub-Signature').split('=')
-    # Currently, GitHub only uses 'SHA1'
+    # Currently, GitHub only uses 'sha1'; log a warning if a different digest is
+    # specified by the server. GitHub may have started using a new digest and
+    # this should be confirmed.
     if digest_name != 'sha1':
         LOGGER.warning('Unexpected signature digest: {}'.format(digest_name))
         debug_log_request(request_headers, request_body)
@@ -160,7 +162,11 @@ def verify_request():
     try:
         digest_mod = getattr(hashlib, digest_name)
     except AttributeError:
-        # Specified digest is not available. Did GitHub start using new digests?
+        # The previous digest check does not require a 'sha1' digest, but simply
+        # warns when an unexpected digest is specified. The function will
+        # attempt to find the digest specified in the signature, but if it is
+        # not currently supported by Python's `hashlib`, an error will be logged
+        # and returned.
         msg = 'Unsupported signature digest: {}'.format(digest_name)
         LOGGER.error(msg)
         debug_log_request(request_headers, request_body)
