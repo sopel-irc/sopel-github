@@ -1,3 +1,9 @@
+Changes in 0.2.0a3
+==================
+
+Added:
+* Handle when issues/PRs are "reopened" (#27)
+
 Changes in 0.2.0a2
 ==================
 
