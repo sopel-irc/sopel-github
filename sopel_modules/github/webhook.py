@@ -134,11 +134,11 @@ def debug_log_request(request_headers, request_body):
     LOGGER.debug('Request: {}'.format(request_body.decode('utf-8')))
 
 
-def abort_request(status_code=400):
+def abort_request(status_code=400, response_message=None):
     if sopel_instance.config.github.debug_mode:
         LOGGER.warning('`debug_mode = True`; allowing unverified request...')
         return None
-    return bottle.abort(status_code)
+    return bottle.abort(status_code, response_message)
 
 
 def verify_request():
@@ -146,9 +146,10 @@ def verify_request():
     request_body = bottle.request.body.read()
 
     if not request_headers.get('X-Hub-Signature'):
-        LOGGER.error('Request is missing a hash signature.')
+        msg = 'Request is missing a hash signature.'
+        LOGGER.error(msg)
         debug_log_request(request_headers, request_body)
-        return abort_request(400)  # 400 Bad Request; client doesn't need to know why.
+        return abort_request(401, msg)  # 401 Unauthorized; missing required header
 
     digest_name, payload_signature = request_headers.get('X-Hub-Signature').split('=')
     # Currently, GitHub only uses 'SHA1'
@@ -159,17 +160,20 @@ def verify_request():
     try:
         digest_mod = getattr(hashlib, digest_name)
     except AttributeError:
-        LOGGER.error('Unsupported signature digest: {}'.format(digest_name))
+        # Specified digest is not available. Did GitHub start using new digests?
+        msg = 'Unsupported signature digest: {}'.format(digest_name)
+        LOGGER.error(msg)
         debug_log_request(request_headers, request_body)
-        return abort_request(400)  # 400 Bad Request; maybe GitHub added new digests?
+        return abort_request(501, msg)  # 501 Not Implemented; server does not support the functionality required to fulfill the request
 
     secret = sopel_instance.config.github.webhook_secret
     hash_ = hmac.new(secret.encode('utf-8') if secret else None, msg=request_body, digestmod=digest_mod)
     expected_signature = hash_.hexdigest()
     if payload_signature != expected_signature:
-        LOGGER.error('Request signature mismatch.')
+        msg = 'Request signature mismatch.'
+        LOGGER.error(msg)
         debug_log_request(request_headers, request_body)
-        return abort_request(400)  # 400 Bad Request; client doesn't need to know why.
+        return abort_request(403, msg)  # 403 Forbidden; server understood the request but refuses to authorize it
 
 
 @bottle.get("/webhook")
