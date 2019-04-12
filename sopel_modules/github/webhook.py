@@ -186,7 +186,8 @@ def verify_request():
 def show_hook_info():
     if sopel_instance.config.github.debug_mode:
         return 'Listening for webhook connections!'
-    return bottle.abort(405)  # 405 Method Not Allowed; this route is only useful for testing.
+    # bottle.abort() == raise HTTPError(); manually raising HTTPError allows passing extra headers
+    raise bottle.HTTPError(405, Allow='POST')  # 405 Method Not Allowed; this route is only useful for testing.
 
 
 @bottle.post("/webhook")
