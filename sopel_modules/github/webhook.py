@@ -151,7 +151,7 @@ def verify_request():
         return abort_request(400)  # 400 Bad Request; client doesn't need to know why.
 
     digest_name, payload_signature = request_headers.get('X-Hub-Signature').split('=')
-    # Currently, Github only uses 'SHA1'
+    # Currently, GitHub only uses 'SHA1'
     if digest_name != 'sha1':
         LOGGER.warning('Unexpected signature digest: {}'.format(digest_name))
         debug_log_request(request_headers, request_body)
@@ -161,7 +161,7 @@ def verify_request():
     except AttributeError:
         LOGGER.error('Unsupported signature digest: {}'.format(digest_name))
         debug_log_request(request_headers, request_body)
-        return abort_request(400)  # 400 Bad Request; maybe Github added new digests?
+        return abort_request(400)  # 400 Bad Request; maybe GitHub added new digests?
 
     secret = sopel_instance.config.github.webhook_secret
     hash_ = hmac.new(secret.encode('utf-8') if secret else None, msg=request_body, digestmod=digest_mod)
@@ -182,7 +182,7 @@ def show_hook_info():
 @bottle.post("/webhook")
 def webhook():
     if sopel_instance.config.github.webhook_secret:
-        verify_request()  # Bottle.py will autmatically abort this webhook for `abort`'d requests.
+        verify_request()  # Bottle.py will automatically abort this webhook for `abort`'d requests.
         # If you made it here, then validation was successful.
 
     event = bottle.request.headers.get('X-GitHub-Event') or 'ping'

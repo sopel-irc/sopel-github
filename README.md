@@ -140,7 +140,7 @@ simple page informing you that the bot succeeded/failed creating your hook.
 Assuming it succeeded, you should see a generic message appear in the channel
 you activated it in.
 
-It is recommended to set a `webhook_secret` in the `[github]` configuration section, and set it for the webhook at github.com. This is only needed if `webhook_secret` was not set in the configuration prior to enabling the webhook.
+It is recommended to set a `webhook_secret` in the `[github]` configuration section, and set it for the webhook at GitHub.com. This is only needed if `webhook_secret` was not set in the configuration prior to enabling the webhook.
 
 ### Customizing hooks
 
