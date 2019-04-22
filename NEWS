@@ -1,8 +1,17 @@
+Changes in 0.2.0a4
+==================
+
+Fixed:
+* Empty PR reviews caused HTTP 500 because of how they were skipped (they
+  should now return HTTP 200 as normal)
+
+
 Changes in 0.2.0a3
 ==================
 
 Added:
 * Handle when issues/PRs are "reopened" (#27)
+
 
 Changes in 0.2.0a2
 ==================
@@ -10,6 +19,7 @@ Changes in 0.2.0a2
 Fixed:
 * Polymorphism is hard in label/assignee events (getting the PR number caused
   errors because sometimes GitHub *does* use `pull_request` instead of `issue`)
+
 
 Changes in 0.2.0a1
 ==================
@@ -19,6 +29,7 @@ Added:
 
 Changed:
 * Edits to review comments also ignored (#24)
+
 
 Changes in 0.2.0a0
 ==================
