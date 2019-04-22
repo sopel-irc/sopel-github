@@ -193,7 +193,7 @@ def show_hook_info():
 @bottle.post("/webhook")
 def webhook():
     if sopel_instance.config.github.webhook_secret:
-        verify_request()  # Bottle.py will automatically abort this webhook for `abort`'d requests.
+        verify_request()  # function will automatically abort this webhook if verification fails
         # If you made it here, then validation was successful.
 
     event = bottle.request.headers.get('X-GitHub-Event') or 'ping'
