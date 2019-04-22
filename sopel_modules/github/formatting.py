@@ -468,8 +468,9 @@ def get_formatted_response(payload, row):
                 # Probably an empty "review" fired by a pull_request_review_comment reply, which we'll get in a separate hook delivery.
                 # Wish GitHub didn't fire both events, but they do, even though it makes no sense.
                 # Either way, an empty review must be accompanied by comments, which will get handled when their hook(s) fire(s).
-                return
-            messages.append(fmt_pull_request_review_summary_message() + " " + fmt_url(shorten_url(payload['review']['html_url'])))
+                pass
+            else:
+                messages.append(fmt_pull_request_review_summary_message() + " " + fmt_url(shorten_url(payload['review']['html_url'])))
         elif payload['action'] == 'dismissed':
             messages.append(fmt_pull_request_review_dismissal_message() + " " + fmt_url(shorten_url(payload['review']['html_url'])))
     elif payload['event'] == 'pull_request_review_comment' and payload['action'] == 'created':
