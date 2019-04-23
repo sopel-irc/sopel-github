@@ -40,7 +40,7 @@ def setup_webhook(sopel):
     port = sopel.config.github.webhook_port
 
     base = StoppableWSGIRefServer(host=host, port=port)
-    server = Thread(target=bottle.run, kwargs={'server': base})
+    server = Thread(target=bottle.run, kwargs={'app': SopelMiddleware(bottle.default_app(), sopel), 'server': base})
     server.setDaemon(True)
     server.start()
     sopel.memory['gh_webhook_server'] = base
@@ -82,6 +82,18 @@ def shutdown_webhook(sopel):
         sopel.memory['gh_webhook_server'].stop()
         sopel.memory['gh_webhook_thread'].join()
         print('GitHub webhook shutdown complete')
+
+
+class SopelMiddleware(object):
+    """WSGI Middleware that injects the bot instance into the CGI environment."""
+
+    def __init__(self, app, bot):
+        self.app = app
+        self.bot = bot
+
+    def __call__(self, environ, start_response):
+        environ['bot'] = self.bot
+        return self.app(environ, start_response)
 
 
 class StoppableWSGIRefServer(bottle.ServerAdapter):
