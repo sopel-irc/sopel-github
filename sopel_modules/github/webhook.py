@@ -17,6 +17,9 @@ Copyright 2019 dgw
 
 from __future__ import unicode_literals
 
+import functools
+import sys
+
 from sopel import tools
 from sopel.formatting import bold, color
 from sopel.tools.time import get_timezone, format_time
@@ -27,8 +30,14 @@ from .formatting import fmt_name
 
 from threading import Thread
 import bottle
+import inspect
 import json
 import requests
+
+if sys.version_info.major < 3:
+    getargspec_ = inspect.getargspec
+else:
+    getargspec_ = inspect.getfullargspec
 
 # Because I'm a horrible person
 sopel_instance = None
@@ -38,6 +47,9 @@ def setup_webhook(sopel):
     sopel_instance = sopel
     host = sopel.config.github.webhook_host
     port = sopel.config.github.webhook_port
+
+    sopel_plugin = SopelBottlePlugin(sopel)
+    bottle.install(sopel_plugin)
 
     base = StoppableWSGIRefServer(host=host, port=port)
     server = Thread(target=bottle.run, kwargs={'app': SopelMiddleware(bottle.default_app(), sopel), 'server': base})
@@ -94,6 +106,36 @@ class SopelMiddleware(object):
     def __call__(self, environ, start_response):
         environ['bot'] = self.bot
         return self.app(environ, start_response)
+
+
+class SopelBottlePlugin(object):
+    """A plugin to pass a bot instance to route callbacks that accept a `bot` argument."""
+
+    name = 'sopel'
+    api = 2
+
+    def __init__(self, bot, keyword='bot'):
+        self.bot = bot
+        self.keyword = keyword
+
+    # TODO: If other plugins are added in the future, this plugin should check
+    # for `keyword` collisions in `SopelBottlePlugin.setup()`.
+
+    def apply(self, callback, context):
+        conf = context.config.get('sopel') or {}  # Get custom context, if provided to `@route`
+        keyword = conf.get('keyword', self.keyword)
+
+        args = getargspec_(context.callback)[0]
+        if keyword not in args:
+            # If `bot` is not an argument, return callback without injecting bot instance.
+            return callback
+
+        @functools.wraps(callback)
+        def wrapper(*args, **kwargs):
+            kwargs[keyword] = self.bot
+            return callback(*args, **kwargs)
+
+        return wrapper
 
 
 class StoppableWSGIRefServer(bottle.ServerAdapter):
