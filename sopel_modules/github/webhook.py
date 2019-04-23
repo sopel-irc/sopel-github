@@ -39,12 +39,8 @@ if sys.version_info.major < 3:
 else:
     getargspec_ = inspect.getfullargspec
 
-# Because I'm a horrible person
-sopel_instance = None
 
 def setup_webhook(sopel):
-    global sopel_instance
-    sopel_instance = sopel
     host = sopel.config.github.webhook_host
     port = sopel.config.github.webhook_port
 
@@ -87,8 +83,6 @@ def create_table(bot, c):
 
 
 def shutdown_webhook(sopel):
-    global sopel_instance
-    sopel_instance = None
     if 'gh_webhook_server' in sopel.memory:
         print('Stopping webhook server')
         sopel.memory['gh_webhook_server'].stop()
@@ -155,8 +149,8 @@ class StoppableWSGIRefServer(bottle.ServerAdapter):
         self.server.shutdown()
 
 
-def get_targets(repo):
-    conn = sopel_instance.db.connect()
+def get_targets(bot, repo):
+    conn = bot.db.connect()
     c = conn.cursor()
     c.execute('SELECT * FROM gh_hooks WHERE repo_name = ? AND enabled = 1', (repo.lower(), ))
     return c.fetchall()
@@ -168,7 +162,7 @@ def show_hook_info():
 
 
 @bottle.post("/webhook")
-def webhook():
+def webhook(bot):
     event = bottle.request.headers.get('X-GitHub-Event') or 'ping'
 
     try:
@@ -177,9 +171,9 @@ def webhook():
         return bottle.abort(400, 'Something went wrong!')
 
     if event == 'ping':
-        channels = get_targets(payload['repository']['full_name'])
+        channels = get_targets(bot, payload['repository']['full_name'])
         for chan in channels:
-            sopel_instance.msg(chan[0], '[{}] {}: {} (Your webhook is now enabled)'.format(
+            bot.msg(chan[0], '[{}] {}: {} (Your webhook is now enabled)'.format(
                           fmt_repo(payload['repository']['name'], chan),
                           fmt_name(payload['sender']['login'], chan),
                           payload['zen']))
@@ -187,27 +181,27 @@ def webhook():
 
     payload['event'] = event
 
-    targets = get_targets(payload['repository']['full_name'])
+    targets = get_targets(bot, payload['repository']['full_name'])
 
     for row in targets:
         messages = get_formatted_response(payload, row)
         # Write the formatted message(s) to the channel
         for message in messages:
-            sopel_instance.msg(row[0], message)
+            bot.msg(row[0], message)
 
     return '{"channels":' + json.dumps([chan[0] for chan in targets]) + '}'
 
 
 @bottle.get('/auth')
-def handle_auth_response():
+def handle_auth_response(bot):
     code = bottle.request.query.code
     state = bottle.request.query.state
 
     repo = state.split(':')[0]
     channel = state.split(':')[1]
 
-    data = {'client_id': sopel_instance.config.github.client_id,
-             'client_secret': sopel_instance.config.github.secret,
+    data = {'client_id': bot.config.github.client_id,
+             'client_secret': bot.config.github.secret,
              'code': code}
     raw = requests.post('https://github.com/login/oauth/access_token', data=data, headers={'Accept': 'application/json'})
     try:
@@ -225,7 +219,7 @@ def handle_auth_response():
             "active": True,
             "events": ["*"],
             "config": {
-                "url": sopel_instance.config.github.external_url,
+                "url": bot.config.github.external_url,
                 "content_type": "json"
             }
         }
