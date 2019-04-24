@@ -120,12 +120,13 @@ def issue_info(bot, trigger, match=None):
         return NOLIMIT
     data = json.loads(raw)
     try:
-        if len(data['body'].split('\n')) > 1 and len(data['body'].split('\n')[0]) > 180:
-            body = data['body'].split('\n')[0] + '...'
-        elif len(data['body'].split('\n')) > 2 and len(data['body'].split('\n')[0]) < 180:
-            body = ' '.join(data['body'].split('\n')[:2]) + '...'
+        lines = data['body'].splitlines()
+        if len(lines) > 1 and len(lines[0]) > 180:
+            body = lines[0] + '...'
+        elif len(lines) > 2 and len(lines[0]) < 180:
+            body = ' '.join(lines[:2]) + '...'
         else:
-            body = data['body'].split('\n')[0]
+            body = lines[0]
     except (KeyError):
         bot.say('[GitHub] API says this is an invalid issue. Please report this if you know it\'s a correct link!')
         return NOLIMIT
@@ -164,10 +165,11 @@ def commit_info(bot, trigger, match=None):
         return NOLIMIT
     data = json.loads(raw)
     try:
-        if len(data['commit']['message'].split('\n')) > 1:
-            body = data['commit']['message'].split('\n')[0] + '...'
+        lines = data['commit']['message'].splitlines()
+        if len(lines) > 1:
+            body = lines[0] + '...'
         else:
-            body = data['commit']['message'].split('\n')[0]
+            body = lines[0]
     except (KeyError):
         bot.say('[GitHub] API says this is an invalid commit. Please report this if you know it\'s a correct link!')
         return NOLIMIT
