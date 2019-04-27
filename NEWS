@@ -1,3 +1,14 @@
+Changes in 0.2.0a5
+==================
+
+Added:
+* Webhook handling of draft pull requests (both opening and marking ready)
+
+Fixed:
+* Sopel's development version finally marked `SopelMemory.contains()` as
+  deprecated, so we don't use it any more
+
+
 Changes in 0.2.0a4
 ==================
 
