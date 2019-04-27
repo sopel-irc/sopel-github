@@ -76,7 +76,7 @@ def create_table(bot, c):
 def shutdown_webhook(sopel):
     global sopel_instance
     sopel_instance = None
-    if sopel.memory.contains('gh_webhook_server'):
+    if 'gh_webhook_server' in sopel.memory:
         print('Stopping webhook server')
         sopel.memory['gh_webhook_server'].stop()
         sopel.memory['gh_webhook_thread'].join()

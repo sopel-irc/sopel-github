@@ -74,7 +74,7 @@ def configure(config):
 
 def setup(sopel):
     sopel.config.define_section('github', GitHubSection)
-    if not sopel.memory.contains('url_callbacks'):
+    if 'url_callbacks' not in sopel.memory:
         sopel.memory['url_callbacks'] = tools.SopelMemory()
     sopel.memory['url_callbacks'][regex] = issue_info
     sopel.memory['url_callbacks'][repoRegex] = data_url
