@@ -299,6 +299,10 @@ def fmt_pull_request_summary_message(payload=None):
     action = payload['action']
     if action == 'closed' and payload['pull_request']['merged']:
         action = 'merged'
+    elif action == 'opened' and payload['pull_request'].get('draft', False):
+        action = 'drafted'
+    elif action == 'ready_for_review':
+        action = 'readied'
 
     return '[{}] {} {} pull request #{}: {} ({}...{})'.format(
                   fmt_repo(payload['repository']['name']),
