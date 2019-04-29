@@ -175,6 +175,7 @@ def commit_info(bot, trigger, match=None):
     if body.strip() == '':
         body = 'No commit message provided.'
 
+    file_count = len(data['files'])
     response = [
         bold('[GitHub]'),
         ' [',
@@ -186,8 +187,8 @@ def commit_info(bot, trigger, match=None):
         bold(' | '),
         str(data['stats']['total']),
         ' changes in ',
-        str(len(data['files'])),
-        ' files'
+        str(file_count),
+        ' file' if file_count == 1 else ' files'
     ]
     bot.say(''.join(response))
 
