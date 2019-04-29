@@ -188,7 +188,7 @@ def commit_info(bot, trigger, match=None):
         str(data['stats']['total']),
         ' changes in ',
         str(file_count),
-        ' file' if file_count == 1 else ' files'
+        (' file' if file_count == 1 else ' files')
     ]
     bot.say(''.join(response))
 
