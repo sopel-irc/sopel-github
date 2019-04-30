@@ -45,11 +45,18 @@ import datetime
 
 '''
 
-issueURL = (r'https?://(?:www\.)?github.com/([A-z0-9\-_]+/[A-z0-9\-_]+)/(?:issues|pull)/([\d]+)(?:#issuecomment-([\d]+))?')
-commitURL = (r'https?://(?:www\.)?github.com/([A-z0-9\-_]+/[A-z0-9\-_]+)/(?:commit)/([A-z0-9\-]+)')
+# GitHub enforces alphanumeric usernames, and allows only one punctuation character: hyphen ('-')
+# Regex copied and slightly modified to meet our needs from CC0 source:
+# https://github.com/shinnn/github-username-regex/blob/0794566cc10e8c5a0e562823f8f8e99fa044e5f4/module.js#L1
+githubUsername = r'[a-z\d](?:[a-z\d]|-(?=[a-z\d])){0,38}'
+# not from anywhere, but handy to simply reuse
+githubRepoSlug = r'[A-Za-z0-9\.\-]+'
+# lots of regex and other globals to make this stuff work
+issueURL = (r'https?://(?:www\.)?github.com/({username}/{repo})/(?:issues|pull)/([\d]+)(?:#issuecomment-([\d]+))?'.format(username=githubUsername, repo=githubRepoSlug))
+commitURL = (r'https?://(?:www\.)?github.com/({username}/{repo})/(?:commit)/([A-z0-9\-]+)'.format(username=githubUsername, repo=githubRepoSlug))
 regex = re.compile(issueURL)
 commitRegex = re.compile(commitURL)
-repoRegex = re.compile(r'github\.com/([^ /]+?)/([^ /]+)/?(?!\S)')
+repoRegex = re.compile(r'github\.com/({username})/({repo})/?(?!\S)'.format(username=githubUsername, repo=githubRepoSlug))
 sopel_instance = None
 
 
