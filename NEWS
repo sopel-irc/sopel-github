@@ -1,3 +1,19 @@
+Changes in 0.2.0a9
+==================
+
+Changed:
+* URL regexes should be more faithful to GitHub's actual restrictions
+  * Neither usernames nor repo names can contain underscore (`_`), so we
+    shouldn't accept it
+  * Repo names can contain dot (`.`), which the old regex didn't allow
+  * Usernames have a maximum length, which we are now looking for
+
+Fixed:
+* Unnecessary parentheses added in previous alpha release
+  * Apparently, `pip install --upgrade --pre` can install the wrong release,
+    making one's testing unreliable.
+
+
 Changes in 0.2.0a8
 ==================
 
