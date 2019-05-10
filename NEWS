@@ -1,3 +1,10 @@
+Changes in 0.2.0a10
+===================
+
+Added:
+* Emit an event to IRC when an issue or PR milestone is added/removed (#35)
+
+
 Changes in 0.2.0a9
 ==================
 
