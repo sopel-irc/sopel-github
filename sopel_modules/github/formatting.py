@@ -280,6 +280,21 @@ def fmt_issue_label_message(payload=None):
                   get_issue_or_pr_number(payload))
 
 
+def fmt_issue_milestone_message(payload=None):
+    if not payload:
+        payload = current_payload
+    added = payload['action'] == 'milestoned'
+    return '[{}] {} {} {} #{} {} the {} milestone'.format(
+                  fmt_repo(payload['repository']['name']),
+                  fmt_name(payload['sender']['login']),
+                  'added' if added else 'removed',
+                  get_issue_type(payload),
+                  get_issue_or_pr_number(payload),
+                  'to' if added else 'from',
+                  payload['issue']['milestone']['title'])
+
+
+
 def fmt_issue_comment_summary_message(payload=None):
     if not payload:
         payload = current_payload
@@ -489,6 +504,8 @@ def get_formatted_response(payload, row):
             messages.append(fmt_issue_assignee_message() + " " + fmt_url(shorten_url(payload['issue']['html_url'])))
         elif re.match('(labeled|unlabeled)', payload['action']):
             messages.append(fmt_issue_label_message() + " " + fmt_url(shorten_url(payload['issue']['html_url'])))
+        elif re.match('(milestoned|demilestoned)', payload['action']):
+            messages.append(fmt_issue_milestone_message() + " " + fmt_url(shorten_url(payload['issue']['html_url'])))
     elif payload['event'] == 'issue_comment' and payload['action'] == 'created':
         messages.append(fmt_issue_comment_summary_message() + " " + fmt_url(shorten_url(payload['comment']['html_url'])))
     elif payload['event'] == 'gollum':
