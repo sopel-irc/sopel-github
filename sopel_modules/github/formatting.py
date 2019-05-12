@@ -243,7 +243,7 @@ def fmt_issue_summary_message(payload=None):
 def fmt_issue_title_edit(payload=None):
     if not payload:
         payload = current_payload
-    return '[{}] {} retitled issue #{}: "{}" ⮞ "{}"'.format(
+    return '[{}] {} retitled issue #{}: "{}" ➜ "{}"'.format(
                   fmt_repo(payload['repository']['name']),
                   fmt_name(payload['sender']['login']),
                   payload['issue']['number'],
@@ -353,7 +353,7 @@ def fmt_pull_request_summary_message(payload=None):
 def fmt_pull_request_title_edit(payload=None):
     if not payload:
         payload = current_payload
-    return '[{}] {} retitled PR #{}: "{}" ⮞ "{}"'.format(
+    return '[{}] {} retitled PR #{}: "{}" ➜ "{}"'.format(
                   fmt_repo(payload['repository']['name']),
                   fmt_name(payload['sender']['login']),
                   payload['pull_request']['number'],
