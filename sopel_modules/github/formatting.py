@@ -509,7 +509,7 @@ def get_formatted_response(payload, row):
         elif payload['action'] == 'edited':
             if 'changes' in payload:
                 if 'title' in payload['changes']:
-                    messages.append(fmt_pull_request_title_edit() + " " + fmt_url(shorten_url(payload['issue']['html_url'])))
+                    messages.append(fmt_pull_request_title_edit() + " " + fmt_url(shorten_url(payload['pull_request']['html_url'])))
     elif payload['event'] == 'pull_request_review':
         if payload['action'] == 'submitted' and payload['review']['state'] in ['approved', 'changes_requested', 'commented']:
             if payload['review']['state'] == 'commented' and payload['review']['body'] == None:
