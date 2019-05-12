@@ -1,7 +1,7 @@
 # coding=utf8
-"""Sopel Github
+"""Sopel GitHub
 
-Github module for Sopel
+GitHub module for Sopel
 """
 from __future__ import unicode_literals, absolute_import, division, print_function
 

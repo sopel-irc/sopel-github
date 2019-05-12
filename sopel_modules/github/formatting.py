@@ -2,6 +2,7 @@
 """
 formatting.py - Sopel GitHub Module
 Copyright 2015 Max Gurela
+Copyright 2019 dgw
 
  _______ __ __   __           __
 |     __|__|  |_|  |--.--.--.|  |--.
