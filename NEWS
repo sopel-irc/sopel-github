@@ -1,3 +1,10 @@
+Changes in 0.2.0a11
+===================
+
+Added:
+* Emit an event to IRC when an issue or PR title is edited (#36)
+
+
 Changes in 0.2.0a10
 ===================
 
