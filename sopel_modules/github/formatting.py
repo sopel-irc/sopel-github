@@ -335,6 +335,17 @@ def fmt_pull_request_review_summary_message(payload=None):
                   short)
 
 
+def fmt_pull_request_review_dismissal_message(payload=None):
+    if not payload:
+        payload = current_payload
+
+    return '[{}] {} dismissed {}\'s review on pull request #{}'.format(
+                  fmt_repo(payload['repository']['name']),
+                  fmt_name(payload['sender']['login']),
+                  fmt_name(payload['review']['user']['login']),
+                  payload['pull_request']['number'])
+
+
 def fmt_pull_request_review_comment_summary_message(payload=None):
     if not payload:
         payload = current_payload
@@ -449,6 +460,8 @@ def get_formatted_response(payload, row):
     elif payload['event'] == 'pull_request_review':
         if payload['action'] == 'submitted' and payload['review']['state'] != 'pending':
             messages.append(fmt_pull_request_review_summary_message() + " " + fmt_url(shorten_url(payload['review']['html_url'])))
+        elif payload['action'] == 'dismissed':
+            messages.append(fmt_pull_request_review_dismissal_message() + " " + fmt_url(shorten_url(payload['review']['html_url'])))
     elif payload['event'] == 'pull_request_review_comment' and payload['action'] == 'created':
         messages.append(fmt_pull_request_review_comment_summary_message() + " " + fmt_url(shorten_url(payload['comment']['html_url'])))
     elif payload['event'] == 'issues':
