@@ -225,6 +225,17 @@ def fmt_issue_summary_message(payload=None):
                   payload['issue']['title'])
 
 
+def fmt_issue_title_edit(payload=None):
+    if not payload:
+        payload = current_payload
+    return '[{}] {} retitled issue #{}: "{}" ⮞ "{}"'.format(
+                  fmt_repo(payload['repository']['name']),
+                  fmt_name(payload['sender']['login']),
+                  payload['issue']['number'],
+                  payload['changes']['title']['from'],
+                  payload['issue']['title'])
+
+
 def fmt_issue_assignee_message(payload=None):
     if not payload:
         payload = current_payload
@@ -291,6 +302,17 @@ def fmt_pull_request_summary_message(payload=None):
                   payload['pull_request']['title'],
                   fmt_branch(base_ref),
                   fmt_branch(head_ref))
+
+
+def fmt_pull_request_title_edit(payload=None):
+    if not payload:
+        payload = current_payload
+    return '[{}] {} retitled PR #{}: "{}" ⮞ "{}"'.format(
+                  fmt_repo(payload['repository']['name']),
+                  fmt_name(payload['sender']['login']),
+                  payload['pull_request']['number'],
+                  payload['changes']['title']['from'],
+                  payload['pull_request']['title'])
 
 
 def fmt_pull_request_review_comment_summary_message(payload=None):
@@ -386,6 +408,10 @@ def get_formatted_response(payload, row):
     elif payload['event'] == 'pull_request':
         if re.match('(open|close)', payload['action']):
             messages.append(fmt_pull_request_summary_message() + " " + fmt_url(shorten_url(payload['pull_request']['html_url'])))
+        elif payload['action'] == 'edited':
+            if 'changes' in payload:
+                if 'title' in payload['changes']:
+                    messages.append(fmt_pull_request_title_edit() + " " + fmt_url(shorten_url(payload['issue']['html_url'])))
     elif payload['event'] == 'pull_request_review_comment':
         messages.append(fmt_pull_request_review_comment_summary_message() + " " + fmt_url(shorten_url(payload['comment']['html_url'])))
     elif payload['event'] == 'issues':
@@ -395,6 +421,10 @@ def get_formatted_response(payload, row):
             messages.append(fmt_issue_assignee_message() + " " + fmt_url(shorten_url(payload['issue']['html_url'])))
         elif re.match('(labeled|unlabeled)', payload['action']):
             messages.append(fmt_issue_label_message() + " " + fmt_url(shorten_url(payload['issue']['html_url'])))
+        elif payload['action'] == 'edited':
+            if 'changes' in payload:
+                if 'title' in payload['changes']:
+                    messages.append(fmt_issue_title_edit() + " " + fmt_url(shorten_url(payload['issue']['html_url'])))
     elif payload['event'] == 'issue_comment' and payload['action'] == 'created':
         messages.append(fmt_issue_comment_summary_message() + " " + fmt_url(shorten_url(payload['comment']['html_url'])))
     elif payload['event'] == 'gollum':
