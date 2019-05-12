@@ -1,3 +1,10 @@
+Changes in 0.2.0a12
+===================
+
+Fixed:
+* Bad copy-paste-fu causing errors for PR title edits
+
+
 Changes in 0.2.0a11
 ===================
 
