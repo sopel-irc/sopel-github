@@ -2,6 +2,7 @@
 """
 github.py - Sopel GitHub Module
 Copyright 2015 Max Gurela
+Copyright 2019 dgw
 
  _______ __ __   __           __
 |     __|__|  |_|  |--.--.--.|  |--.
@@ -48,7 +49,7 @@ issueURL = (r'https?://(?:www\.)?github.com/([A-z0-9\-_]+/[A-z0-9\-_]+)/(?:issue
 commitURL = (r'https?://(?:www\.)?github.com/([A-z0-9\-_]+/[A-z0-9\-_]+)/(?:commit)/([A-z0-9\-]+)')
 regex = re.compile(issueURL)
 commitRegex = re.compile(commitURL)
-repoRegex = re.compile('github\.com/([^ /]+?)/([^ /]+)/?(?!\S)')
+repoRegex = re.compile(r'github\.com/([^ /]+?)/([^ /]+)/?(?!\S)')
 sopel_instance = None
 
 
@@ -92,8 +93,8 @@ def shutdown(sopel):
 
 '''
  _______ ______ _____        ______                    __
-|   |   |   __ \     |_     |   __ \.---.-.----.-----.|__|.-----.-----.
-|   |   |      <       |    |    __/|  _  |   _|__ --||  ||     |  _  |
+|   |   |   __ |     |_     |   __ |.---.-.----.-----.|__|.-----.-----.
+|   |   |      <       |    |    __||  _  |   _|__ --||  ||     |  _  |
 |_______|___|__|_______|    |___|   |___._|__| |_____||__||__|__|___  |
                                                                 |_____|
 '''
