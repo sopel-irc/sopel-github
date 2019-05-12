@@ -190,7 +190,7 @@ def fmt_push_summary_message(payload=None, row=None):
 
 
 def fmt_commit_message(commit):
-    short = commit['message'].split('\n', 2)[0]
+    short = commit['message'].splitlines()[0]
     short = short + '...' if short != commit['message'] else short
 
     author = commit['author']['name']
@@ -205,7 +205,7 @@ def fmt_commit_comment_summary(payload=None, row=None):
     if not row:
         row = current_row
 
-    short = payload['comment']['body'].split('\r\n', 2)[0]
+    short = payload['comment']['body'].splitlines()[0]
     short = short + '...' if short != payload['comment']['body'] else short
     return '[{}] {} commented on commit {}: {}'.format(
                   fmt_repo(payload['repository']['name']),
@@ -262,7 +262,7 @@ def fmt_issue_comment_summary_message(payload=None):
         payload = current_payload
 
     issue_type = get_issue_type(payload)
-    short = payload['comment']['body'].split('\r\n', 2)[0]
+    short = payload['comment']['body'].splitlines()[0]
     short = short + '...' if short != payload['comment']['body'] else short
     return '[{}] {} commented on {} #{}: {}'.format(
                   fmt_repo(payload['repository']['name']),
@@ -296,7 +296,7 @@ def fmt_pull_request_summary_message(payload=None):
 def fmt_pull_request_review_comment_summary_message(payload=None):
     if not payload:
         payload = current_payload
-    short = payload['comment']['body'].split('\r\n', 2)[0]
+    short = payload['comment']['body'].splitlines()[0]
     short = short + '...' if short != payload['comment']['body'] else short
     sha1 = payload['comment']['commit_id']
     return '[{}] {} left a file comment in pull request #{} {}: {}'.format(
