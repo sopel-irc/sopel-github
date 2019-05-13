@@ -1,3 +1,18 @@
+Changes in 0.2.0a13
+===================
+
+Changed:
+* Arrow character used in title edit output had limited mobile support; switched
+  to one that appears to be available just about everywhere
+
+Fixed:
+* Stop trying to get milestone name for "demilestoned" payloads (GitHub
+  doesn't send that information, unfortunately)
+
+Meta:
+* Alpha branch is now based on version 0.1.6
+
+
 Changes in 0.1.6
 ================
 
