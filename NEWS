@@ -1,3 +1,11 @@
+Changes in 0.2.0a14
+===================
+
+Fixed:
+* Empty issue/PR description or empty commit message won't throw errors any
+  more (#39)
+
+
 Changes in 0.2.0a13
 ===================
 
