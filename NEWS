@@ -1,3 +1,10 @@
+Changes in 0.1.7
+================
+
+Fixed:
+* Error with empty issue/PR description or commit message (#39)
+
+
 Changes in 0.1.6
 ================
 

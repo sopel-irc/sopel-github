@@ -126,8 +126,10 @@ def issue_info(bot, trigger, match=None):
             body = lines[0] + '...'
         elif len(lines) > 2 and len(lines[0]) < 180:
             body = ' '.join(lines[:2]) + '...'
-        else:
+        elif len(lines) > 0:
             body = lines[0]
+        else:
+            body = ''
     except (KeyError):
         bot.say('[GitHub] API says this is an invalid issue. Please report this if you know it\'s a correct link!')
         return NOLIMIT
@@ -169,8 +171,10 @@ def commit_info(bot, trigger, match=None):
         lines = data['commit']['message'].splitlines()
         if len(lines) > 1:
             body = lines[0] + '...'
-        else:
+        elif len(lines) > 0:
             body = lines[0]
+        else:
+            body = ''
     except (KeyError):
         bot.say('[GitHub] API says this is an invalid commit. Please report this if you know it\'s a correct link!')
         return NOLIMIT
