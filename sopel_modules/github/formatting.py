@@ -388,7 +388,7 @@ def get_formatted_response(payload, row):
     elif payload['event'] == 'commit_comment':
         messages.append(fmt_commit_comment_summary() + " " + fmt_url(shorten_url(payload['comment']['html_url'])))
     elif payload['event'] == 'pull_request':
-        if re.match('(open|close)', payload['action']):
+        if re.match('(open|close)', payload['action']) or payload['action'] == 'ready_for_review':
             messages.append(fmt_pull_request_summary_message() + " " + fmt_url(shorten_url(payload['pull_request']['html_url'])))
     elif payload['event'] == 'pull_request_review_comment':
         messages.append(fmt_pull_request_review_comment_summary_message() + " " + fmt_url(shorten_url(payload['comment']['html_url'])))
