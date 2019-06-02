@@ -1,3 +1,9 @@
+Changes in 0.2.0a15
+===================
+
+Fixed:
+* Actually fire event handler for PRs marked `ready_for_review`
+
 Changes in 0.1.7
 ================
 
