@@ -354,7 +354,10 @@ def fmt_gollum_summary_message(payload=None):
 
 
 def fmt_arr_to_sentence(array):
-    return '{} and {}'.format(', '.join(array[:-1]), array[-1])
+    if len(seq) <= 2:
+        return ' and '.join(seq)
+    else:
+        return '{}, and {}'.format(', '.join(seq[:-1]), seq[-1])
 
 
 def fmt_watch_message(payload=None):
