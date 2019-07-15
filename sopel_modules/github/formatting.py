@@ -310,6 +310,47 @@ def fmt_pull_request_summary_message(payload=None):
                   fmt_branch(head_ref))
 
 
+def fmt_pull_request_review_summary_message(payload=None):
+    if not payload:
+        payload = current_payload
+
+    action = payload['review']['state']
+    if action == 'commented':
+        action = 'left a review on'
+    elif action == 'changes_requested':
+        action = 'requested changes on'
+
+    body = payload['review']['body']
+    short = ''
+    if body:
+        short = body.splitlines()[0]
+        short = short + '…' if short != body else short
+        short = ': ' + short
+
+    return '[{}] {} {} pull request #{}{}'.format(
+                  fmt_repo(payload['repository']['name']),
+                  fmt_name(payload['sender']['login']),
+                  action,
+                  payload['pull_request']['number'],
+                  short)
+
+
+def fmt_pull_request_review_dismissal_message(payload=None):
+    if not payload:
+        payload = current_payload
+
+    if payload['sender']['login'] == payload['review']['user']['login']:
+        whose = 'their'
+    else:
+        whose = fmt_name(payload['review']['user']['login']) + '\'s'
+
+    return '[{}] {} dismissed {} review on pull request #{}'.format(
+                  fmt_repo(payload['repository']['name']),
+                  fmt_name(payload['sender']['login']),
+                  whose,
+                  payload['pull_request']['number'])
+
+
 def fmt_pull_request_review_comment_summary_message(payload=None):
     if not payload:
         payload = current_payload
@@ -421,6 +462,17 @@ def get_formatted_response(payload, row):
             messages.append(fmt_issue_assignee_message() + " " + fmt_url(shorten_url(payload['pull_request']['html_url'])))
         elif re.match('(labeled|unlabeled)', payload['action']):
             messages.append(fmt_issue_label_message() + " " + fmt_url(shorten_url(payload['pull_request']['html_url'])))
+    elif payload['event'] == 'pull_request_review':
+        if payload['action'] == 'submitted' and payload['review']['state'] in ['approved', 'changes_requested', 'commented']:
+            if payload['review']['state'] == 'commented' and payload['review']['body'] == None:
+                # Probably an empty "review" fired by a pull_request_review_comment reply, which we'll get in a separate hook delivery.
+                # Wish GitHub didn't fire both events, but they do, even though it makes no sense.
+                # Either way, an empty review must be accompanied by comments, which will get handled when their hook(s) fire(s).
+                pass
+            else:
+                messages.append(fmt_pull_request_review_summary_message() + " " + fmt_url(shorten_url(payload['review']['html_url'])))
+        elif payload['action'] == 'dismissed':
+            messages.append(fmt_pull_request_review_dismissal_message() + " " + fmt_url(shorten_url(payload['review']['html_url'])))
     elif payload['event'] == 'pull_request_review_comment' and payload['action'] == 'created':
         messages.append(fmt_pull_request_review_comment_summary_message() + " " + fmt_url(shorten_url(payload['comment']['html_url'])))
     elif payload['event'] == 'issues':
