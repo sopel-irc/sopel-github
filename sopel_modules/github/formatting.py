@@ -62,6 +62,13 @@ def fmt_branch(s, row=None):
     return color(s, fg=row[8])
 
 
+def fmt_short_comment_body(body):
+    text = [line for line in body.splitlines() if line[0] != '>']
+    short = text[0]
+    short = short + '…' if short != body else short
+    return short
+
+
 def get_distinct_commits(payload=None):
     if not payload:
         payload = current_payload
@@ -220,8 +227,7 @@ def fmt_commit_comment_summary(payload=None, row=None):
     if not row:
         row = current_row
 
-    short = payload['comment']['body'].splitlines()[0]
-    short = short + '…' if short != payload['comment']['body'] else short
+    short = fmt_short_comment_body(payload['comment']['body'])
     return '[{}] {} commented on commit {}: {}'.format(
                   fmt_repo(payload['repository']['name']),
                   fmt_name(payload['sender']['login']),
@@ -279,8 +285,7 @@ def fmt_issue_comment_summary_message(payload=None):
         payload = current_payload
 
     issue_type = get_issue_type(payload)
-    short = payload['comment']['body'].splitlines()[0]
-    short = short + '…' if short != payload['comment']['body'] else short
+    short = fmt_short_comment_body(payload['comment']['body'])
     return '[{}] {} commented on {} #{}: {}'.format(
                   fmt_repo(payload['repository']['name']),
                   fmt_name(payload['sender']['login']),
@@ -323,8 +328,7 @@ def fmt_pull_request_review_summary_message(payload=None):
     body = payload['review']['body']
     short = ''
     if body:
-        short = body.splitlines()[0]
-        short = short + '…' if short != body else short
+        short = fmt_short_comment_body(body)
         short = ': ' + short
 
     return '[{}] {} {} pull request #{}{}'.format(
@@ -354,8 +358,7 @@ def fmt_pull_request_review_dismissal_message(payload=None):
 def fmt_pull_request_review_comment_summary_message(payload=None):
     if not payload:
         payload = current_payload
-    short = payload['comment']['body'].splitlines()[0]
-    short = short + '…' if short != payload['comment']['body'] else short
+    short = fmt_short_comment_body(payload['comment']['body'])
     sha1 = payload['comment']['commit_id']
     return '[{}] {} left a file comment in pull request #{} {}: {}'.format(
                   fmt_repo(payload['repository']['name']),
