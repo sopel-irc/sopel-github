@@ -123,9 +123,9 @@ def issue_info(bot, trigger, match=None):
     try:
         lines = data['body'].splitlines()
         if len(lines) > 1 and len(lines[0]) > 180:
-            body = lines[0] + '...'
+            body = lines[0] + '…'
         elif len(lines) > 2 and len(lines[0]) < 180:
-            body = ' '.join(lines[:2]) + '...'
+            body = ' '.join(lines[:2]) + '…'
         elif len(lines) > 0:
             body = lines[0]
         else:
@@ -170,7 +170,7 @@ def commit_info(bot, trigger, match=None):
     try:
         lines = data['commit']['message'].splitlines()
         if len(lines) > 1:
-            body = lines[0] + '...'
+            body = lines[0] + '…'
         elif len(lines) > 0:
             body = lines[0]
         else:

@@ -190,7 +190,7 @@ def handle_auth_response():
         title = 'Done!'
         header = 'Webhook setup complete!'
         body = 'That was simple, right?! You should be seeing a completion message in {} any second now'.format(channel)
-        flair = 'There\'s no way it was that easy... things are never this easy...'
+        flair = 'There\'s no way it was that easy… things are never this easy…'
     except Exception as e:
         title = 'Error!'
         header = 'Webhook setup failed!'
