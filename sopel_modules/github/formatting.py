@@ -299,6 +299,10 @@ def fmt_pull_request_summary_message(payload=None):
     action = payload['action']
     if action == 'closed' and payload['pull_request']['merged']:
         action = 'merged'
+    elif action == 'opened' and payload['pull_request'].get('draft', False):
+        action = 'drafted'
+    elif action == 'ready_for_review':
+        action = 'readied'
 
     return '[{}] {} {} pull request #{}: {} ({}...{})'.format(
                   fmt_repo(payload['repository']['name']),
@@ -456,7 +460,7 @@ def get_formatted_response(payload, row):
     elif payload['event'] == 'commit_comment':
         messages.append(fmt_commit_comment_summary() + " " + fmt_url(shorten_url(payload['comment']['html_url'])))
     elif payload['event'] == 'pull_request':
-        if re.match('((re)?open|clos)ed', payload['action']):
+        if re.match('((re)?open|clos)ed', payload['action']) or payload['action'] == 'ready_for_review':
             messages.append(fmt_pull_request_summary_message() + " " + fmt_url(shorten_url(payload['pull_request']['html_url'])))
         elif re.match('(assigned|unassigned)', payload['action']):
             messages.append(fmt_issue_assignee_message() + " " + fmt_url(shorten_url(payload['pull_request']['html_url'])))
