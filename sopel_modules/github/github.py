@@ -56,6 +56,7 @@ sopel_instance = None
 class GitHubSection(StaticSection):
     client_id = ValidatedAttribute('client_id', default=None)
     client_secret = ValidatedAttribute('client_secret', default=None)
+    secret = ValidatedAttribute('secret', default=None)  # TODO remove in 0.3.0 or thereabouts
     webhook = ValidatedAttribute('webhook', bool, default=False)
     webhook_host = ValidatedAttribute('webhook_host', default='0.0.0.0')
     webhook_port = ValidatedAttribute('webhook_port', default='3333')
@@ -83,6 +84,13 @@ def setup(sopel):
 
     if sopel.config.github.webhook:
         setup_webhook(sopel)
+
+    if not sopel.config.github.client_secret:
+        if sopel.config.github.secret:
+            sopel.config.github.client_secret = sopel.config.github.secret
+            del sopel.config.github.secret
+            sopel.config.save()
+            tools.stderr("[GitHub] Migrated `secret` to `client_secret` in config.")
 
 
 def shutdown(sopel):
