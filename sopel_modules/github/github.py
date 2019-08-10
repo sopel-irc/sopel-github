@@ -48,8 +48,9 @@ import datetime
 # GitHub enforces alphanumeric usernames, and allows only one punctuation character: hyphen ('-')
 # Regex copied and slightly modified to meet our needs from CC0 source:
 # https://github.com/shinnn/github-username-regex/blob/0794566cc10e8c5a0e562823f8f8e99fa044e5f4/module.js#L1
-githubUsername = r'[a-z\d](?:[a-z\d]|-(?=[a-z\d])){0,38}'
-# not from anywhere, but handy to simply reuse
+githubUsername = r'[A-Za-z\d](?:[A-Za-z\d]|-(?=[A-Za-z\d])){0,38}'
+# GitHub additionally allows dots ('.') in repo names, as well as hyphens
+# not copied from anywhere, but handy to simply reuse
 githubRepoSlug = r'[A-Za-z0-9\.\-]+'
 # lots of regex and other globals to make this stuff work
 issueURL = (r'https?://(?:www\.)?github.com/({username}/{repo})/(?:issues|pull)/([\d]+)(?:#issuecomment-([\d]+))?'.format(username=githubUsername, repo=githubRepoSlug))
