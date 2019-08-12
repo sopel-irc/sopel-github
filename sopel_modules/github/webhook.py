@@ -17,6 +17,9 @@ Copyright 2019 dgw
 
 from __future__ import unicode_literals
 
+import functools
+import sys
+
 from sopel import tools
 from sopel.formatting import bold, color
 from sopel.tools.time import get_timezone, format_time
@@ -27,20 +30,25 @@ from .formatting import fmt_name
 
 from threading import Thread
 import bottle
+import inspect
 import json
 import requests
 
-# Because I'm a horrible person
-sopel_instance = None
+if sys.version_info.major < 3:
+    getargspec_ = inspect.getargspec
+else:
+    getargspec_ = inspect.getfullargspec
+
 
 def setup_webhook(sopel):
-    global sopel_instance
-    sopel_instance = sopel
     host = sopel.config.github.webhook_host
     port = sopel.config.github.webhook_port
 
+    sopel_plugin = SopelBottlePlugin(sopel)
+    bottle.install(sopel_plugin)
+
     base = StoppableWSGIRefServer(host=host, port=port)
-    server = Thread(target=bottle.run, kwargs={'server': base})
+    server = Thread(target=bottle.run, kwargs={'app': SopelMiddleware(bottle.default_app(), sopel), 'server': base})
     server.setDaemon(True)
     server.start()
     sopel.memory['gh_webhook_server'] = base
@@ -75,13 +83,53 @@ def create_table(bot, c):
 
 
 def shutdown_webhook(sopel):
-    global sopel_instance
-    sopel_instance = None
     if 'gh_webhook_server' in sopel.memory:
         print('Stopping webhook server')
         sopel.memory['gh_webhook_server'].stop()
         sopel.memory['gh_webhook_thread'].join()
         print('GitHub webhook shutdown complete')
+
+
+class SopelMiddleware(object):
+    """WSGI Middleware that injects the bot instance into the CGI environment."""
+
+    def __init__(self, app, bot):
+        self.app = app
+        self.bot = bot
+
+    def __call__(self, environ, start_response):
+        environ['bot'] = self.bot
+        return self.app(environ, start_response)
+
+
+class SopelBottlePlugin(object):
+    """A plugin to pass a bot instance to route callbacks that accept a `bot` argument."""
+
+    name = 'sopel'
+    api = 2
+
+    def __init__(self, bot, keyword='bot'):
+        self.bot = bot
+        self.keyword = keyword
+
+    # TODO: If other plugins are added in the future, this plugin should check
+    # for `keyword` collisions in `SopelBottlePlugin.setup()`.
+
+    def apply(self, callback, context):
+        conf = context.config.get('sopel') or {}  # Get custom context, if provided to `@route`
+        keyword = conf.get('keyword', self.keyword)
+
+        args = getargspec_(context.callback)[0]
+        if keyword not in args:
+            # If `bot` is not an argument, return callback without injecting bot instance.
+            return callback
+
+        @functools.wraps(callback)
+        def wrapper(*args, **kwargs):
+            kwargs[keyword] = self.bot
+            return callback(*args, **kwargs)
+
+        return wrapper
 
 
 class StoppableWSGIRefServer(bottle.ServerAdapter):
@@ -101,8 +149,8 @@ class StoppableWSGIRefServer(bottle.ServerAdapter):
         self.server.shutdown()
 
 
-def get_targets(repo):
-    conn = sopel_instance.db.connect()
+def get_targets(bot, repo):
+    conn = bot.db.connect()
     c = conn.cursor()
     c.execute('SELECT * FROM gh_hooks WHERE repo_name = ? AND enabled = 1', (repo.lower(), ))
     return c.fetchall()
@@ -114,7 +162,7 @@ def show_hook_info():
 
 
 @bottle.post("/webhook")
-def webhook():
+def webhook(bot):
     event = bottle.request.headers.get('X-GitHub-Event') or 'ping'
 
     try:
@@ -123,9 +171,9 @@ def webhook():
         return bottle.abort(400, 'Something went wrong!')
 
     if event == 'ping':
-        channels = get_targets(payload['repository']['full_name'])
+        channels = get_targets(bot, payload['repository']['full_name'])
         for chan in channels:
-            sopel_instance.msg(chan[0], '[{}] {}: {} (Your webhook is now enabled)'.format(
+            bot.msg(chan[0], '[{}] {}: {} (Your webhook is now enabled)'.format(
                           fmt_repo(payload['repository']['name'], chan),
                           fmt_name(payload['sender']['login'], chan),
                           payload['zen']))
@@ -133,27 +181,27 @@ def webhook():
 
     payload['event'] = event
 
-    targets = get_targets(payload['repository']['full_name'])
+    targets = get_targets(bot, payload['repository']['full_name'])
 
     for row in targets:
         messages = get_formatted_response(payload, row)
         # Write the formatted message(s) to the channel
         for message in messages:
-            sopel_instance.msg(row[0], message)
+            bot.msg(row[0], message)
 
     return '{"channels":' + json.dumps([chan[0] for chan in targets]) + '}'
 
 
 @bottle.get('/auth')
-def handle_auth_response():
+def handle_auth_response(bot):
     code = bottle.request.query.code
     state = bottle.request.query.state
 
     repo = state.split(':')[0]
     channel = state.split(':')[1]
 
-    data = {'client_id': sopel_instance.config.github.client_id,
-             'client_secret': sopel_instance.config.github.secret,
+    data = {'client_id': bot.config.github.client_id,
+             'client_secret': bot.config.github.secret,
              'code': code}
     raw = requests.post('https://github.com/login/oauth/access_token', data=data, headers={'Accept': 'application/json'})
     try:
@@ -171,7 +219,7 @@ def handle_auth_response():
             "active": True,
             "events": ["*"],
             "config": {
-                "url": sopel_instance.config.github.external_url,
+                "url": bot.config.github.external_url,
                 "content_type": "json"
             }
         }
