@@ -69,6 +69,13 @@ def fmt_branch(s, row=None):
     return color(s, fg=row[8])
 
 
+def fmt_short_comment_body(body):
+    text = [line for line in body.splitlines() if line[0] != '>']
+    short = text[0]
+    short = short + '…' if short != body else short
+    return short
+
+
 def get_distinct_commits(payload=None):
     if not payload:
         payload = current_payload
@@ -213,7 +220,7 @@ def fmt_push_summary_message(payload=None, row=None):
 
 def fmt_commit_message(commit):
     short = commit['message'].splitlines()[0]
-    short = short + '...' if short != commit['message'] else short
+    short = short + '…' if short != commit['message'] else short
 
     author = commit['author']['name']
     sha = commit['id']
@@ -227,8 +234,7 @@ def fmt_commit_comment_summary(payload=None, row=None):
     if not row:
         row = current_row
 
-    short = payload['comment']['body'].splitlines()[0]
-    short = short + '...' if short != payload['comment']['body'] else short
+    short = fmt_short_comment_body(payload['comment']['body'])
     return '[{}] {} commented on commit {}: {}'.format(
                   fmt_repo(payload['repository']['name']),
                   fmt_name(payload['sender']['login']),
@@ -317,14 +323,12 @@ def fmt_issue_milestone_message(payload=None):
                   stone)
 
 
-
 def fmt_issue_comment_summary_message(payload=None):
     if not payload:
         payload = current_payload
 
     issue_type = get_issue_type(payload)
-    short = payload['comment']['body'].splitlines()[0]
-    short = short + '...' if short != payload['comment']['body'] else short
+    short = fmt_short_comment_body(payload['comment']['body'])
     return '[{}] {} commented on {} #{}: {}'.format(
                   fmt_repo(payload['repository']['name']),
                   fmt_name(payload['sender']['login']),
@@ -382,8 +386,7 @@ def fmt_pull_request_review_summary_message(payload=None):
     body = payload['review']['body']
     short = ''
     if body:
-        short = body.split('\r\n', 2)[0]
-        short = short + '...' if short != body else short
+        short = fmt_short_comment_body(body)
         short = ': ' + short
 
     return '[{}] {} {} pull request #{}{}'.format(
@@ -394,7 +397,7 @@ def fmt_pull_request_review_summary_message(payload=None):
                   short)
 
 
-def fmt_pull_request_dismissal_message(payload=None):
+def fmt_pull_request_review_dismissal_message(payload=None):
     if not payload:
         payload = current_payload
 
@@ -413,8 +416,7 @@ def fmt_pull_request_dismissal_message(payload=None):
 def fmt_pull_request_review_comment_summary_message(payload=None):
     if not payload:
         payload = current_payload
-    short = payload['comment']['body'].splitlines()[0]
-    short = short + '...' if short != payload['comment']['body'] else short
+    short = fmt_short_comment_body(payload['comment']['body'])
     sha1 = payload['comment']['commit_id']
     return '[{}] {} left a file comment in pull request #{} {}: {}'.format(
                   fmt_repo(payload['repository']['name']),
@@ -454,7 +456,10 @@ def fmt_gollum_summary_message(payload=None):
 
 
 def fmt_arr_to_sentence(array):
-    return '{} and {}'.format(', '.join(array[:-1]), array[-1])
+    if len(seq) <= 2:
+        return ' and '.join(seq)
+    else:
+        return '{}, and {}'.format(', '.join(seq[:-1]), seq[-1])
 
 
 def fmt_watch_message(payload=None):
@@ -514,14 +519,14 @@ def get_formatted_response(payload, row):
     elif payload['event'] == 'pull_request':
         if re.match('((re)?open|clos)ed', payload['action']) or payload['action'] == 'ready_for_review':
             messages.append(fmt_pull_request_summary_message() + " " + fmt_url(shorten_url(payload['pull_request']['html_url'])))
-        elif re.match('(assigned|unassigned)', payload['action']):
-            messages.append(fmt_issue_assignee_message() + " " + fmt_url(shorten_url(payload['pull_request']['html_url'])))
-        elif re.match('(labeled|unlabeled)', payload['action']):
-            messages.append(fmt_issue_label_message() + " " + fmt_url(shorten_url(payload['pull_request']['html_url'])))
         elif payload['action'] == 'edited':
             if 'changes' in payload:
                 if 'title' in payload['changes']:
                     messages.append(fmt_pull_request_title_edit() + " " + fmt_url(shorten_url(payload['pull_request']['html_url'])))
+        elif re.match('(assigned|unassigned)', payload['action']):
+            messages.append(fmt_issue_assignee_message() + " " + fmt_url(shorten_url(payload['pull_request']['html_url'])))
+        elif re.match('(labeled|unlabeled)', payload['action']):
+            messages.append(fmt_issue_label_message() + " " + fmt_url(shorten_url(payload['pull_request']['html_url'])))
     elif payload['event'] == 'pull_request_review':
         if payload['action'] == 'submitted' and payload['review']['state'] in ['approved', 'changes_requested', 'commented']:
             if payload['review']['state'] == 'commented' and payload['review']['body'] == None:
@@ -532,7 +537,7 @@ def get_formatted_response(payload, row):
             else:
                 messages.append(fmt_pull_request_review_summary_message() + " " + fmt_url(shorten_url(payload['review']['html_url'])))
         elif payload['action'] == 'dismissed':
-            messages.append(fmt_pull_request_dismissal_message() + " " + fmt_url(shorten_url(payload['review']['html_url'])))
+            messages.append(fmt_pull_request_review_dismissal_message() + " " + fmt_url(shorten_url(payload['review']['html_url'])))
     elif payload['event'] == 'pull_request_review_comment' and payload['action'] == 'created':
         messages.append(fmt_pull_request_review_comment_summary_message() + " " + fmt_url(shorten_url(payload['comment']['html_url'])))
     elif payload['event'] == 'issues':

@@ -48,8 +48,9 @@ import datetime
 # GitHub enforces alphanumeric usernames, and allows only one punctuation character: hyphen ('-')
 # Regex copied and slightly modified to meet our needs from CC0 source:
 # https://github.com/shinnn/github-username-regex/blob/0794566cc10e8c5a0e562823f8f8e99fa044e5f4/module.js#L1
-githubUsername = r'[a-z\d](?:[a-z\d]|-(?=[a-z\d])){0,38}'
-# not from anywhere, but handy to simply reuse
+githubUsername = r'[A-Za-z\d](?:[A-Za-z\d]|-(?=[A-Za-z\d])){0,38}'
+# GitHub additionally allows dots ('.') in repo names, as well as hyphens
+# not copied from anywhere, but handy to simply reuse
 githubRepoSlug = r'[A-Za-z0-9\.\-]+'
 # lots of regex and other globals to make this stuff work
 issueURL = (r'https?://(?:www\.)?github.com/({username}/{repo})/(?:issues|pull)/([\d]+)(?:#issuecomment-([\d]+))?'.format(username=githubUsername, repo=githubRepoSlug))
@@ -62,8 +63,9 @@ sopel_instance = None
 
 class GitHubSection(StaticSection):
     client_id = ValidatedAttribute('client_id', default=None)
-    secret    = ValidatedAttribute('secret', default=None)
-    webhook   = ValidatedAttribute('webhook', bool, default=False)
+    client_secret = ValidatedAttribute('client_secret', default=None)
+    secret = ValidatedAttribute('secret', default=None)  # TODO remove in 0.3.0 or thereabouts
+    webhook = ValidatedAttribute('webhook', bool, default=False)
     webhook_host = ValidatedAttribute('webhook_host', default='0.0.0.0')
     webhook_port = ValidatedAttribute('webhook_port', default='3333')
     external_url = ValidatedAttribute('external_url', default='http://your_ip_or_domain_here:3333')
@@ -72,8 +74,8 @@ class GitHubSection(StaticSection):
 def configure(config):
     config.define_section('github', GitHubSection, validate=False)
     config.github.configure_setting('client_id', 'GitHub API Client ID')
-    config.github.configure_setting('secret',    'GitHub API Client Secret')
-    config.github.configure_setting('webhook',   'Enable webhook listener functionality')
+    config.github.configure_setting('client_secret', 'GitHub API Client Secret')
+    config.github.configure_setting('webhook', 'Enable webhook listener functionality')
     if config.github.webhook:
         config.github.configure_setting('webhook_host', 'Listen IP for incoming webhooks (0.0.0.0 for all IPs)')
         config.github.configure_setting('webhook_port', 'Listen port for incoming webhooks')
@@ -90,6 +92,13 @@ def setup(sopel):
 
     if sopel.config.github.webhook:
         setup_webhook(sopel)
+
+    if not sopel.config.github.client_secret:
+        if sopel.config.github.secret:
+            sopel.config.github.client_secret = sopel.config.github.secret
+            del sopel.config.github.secret
+            sopel.config.save()
+            tools.stderr("[GitHub] Migrated `secret` to `client_secret` in config.")
 
 
 def shutdown(sopel):
@@ -109,8 +118,8 @@ def shutdown(sopel):
 
 def fetch_api_endpoint(bot, url):
     oauth = ''
-    if bot.config.github.client_id and bot.config.github.secret:
-        oauth = '?client_id=%s&client_secret=%s' % (bot.config.github.client_id, bot.config.github.secret)
+    if bot.config.github.client_id and bot.config.github.client_secret:
+        oauth = '?client_id=%s&client_secret=%s' % (bot.config.github.client_id, bot.config.github.client_secret)
     return requests.get(url + oauth).text
 
 
@@ -130,9 +139,9 @@ def issue_info(bot, trigger, match=None):
     try:
         lines = data['body'].splitlines()
         if len(lines) > 1 and len(lines[0]) > 180:
-            body = lines[0] + '...'
+            body = lines[0] + '…'
         elif len(lines) > 2 and len(lines[0]) < 180:
-            body = ' '.join(lines[:2]) + '...'
+            body = ' '.join(lines[:2]) + '…'
         elif len(lines) > 0:
             body = lines[0]
         else:
@@ -177,7 +186,7 @@ def commit_info(bot, trigger, match=None):
     try:
         lines = data['commit']['message'].splitlines()
         if len(lines) > 1:
-            body = lines[0] + '...'
+            body = lines[0] + '…'
         elif len(lines) > 0:
             body = lines[0]
         else:
