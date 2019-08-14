@@ -250,7 +250,7 @@ def fmt_issue_summary_message(payload=None):
                   fmt_name(payload['sender']['login']),
                   payload['action'],
                   payload['issue']['number'],
-                  payload['issue']['title'])
+                  emojize(payload['issue']['title']))
 
 
 def fmt_issue_title_edit(payload=None):
@@ -260,8 +260,8 @@ def fmt_issue_title_edit(payload=None):
                   fmt_repo(payload['repository']['name']),
                   fmt_name(payload['sender']['login']),
                   payload['issue']['number'],
-                  payload['changes']['title']['from'],
-                  payload['issue']['title'])
+                  emojize(payload['changes']['title']['from']),
+                  emojize(payload['issue']['title']))
 
 
 def fmt_issue_assignee_message(payload=None):
@@ -357,7 +357,7 @@ def fmt_pull_request_summary_message(payload=None):
                   fmt_name(payload['sender']['login']),
                   action,
                   payload['pull_request']['number'],
-                  payload['pull_request']['title'],
+                  emojize(payload['pull_request']['title']),
                   fmt_branch(base_ref),
                   fmt_branch(head_ref))
 
@@ -369,8 +369,8 @@ def fmt_pull_request_title_edit(payload=None):
                   fmt_repo(payload['repository']['name']),
                   fmt_name(payload['sender']['login']),
                   payload['pull_request']['number'],
-                  payload['changes']['title']['from'],
-                  payload['pull_request']['title'])
+                  emojize(payload['changes']['title']['from']),
+                  emojize(payload['pull_request']['title']))
 
 
 def fmt_pull_request_review_summary_message(payload=None):
@@ -394,7 +394,7 @@ def fmt_pull_request_review_summary_message(payload=None):
                   fmt_name(payload['sender']['login']),
                   action,
                   payload['pull_request']['number'],
-                  short)
+                  emojize(short))
 
 
 def fmt_pull_request_review_dismissal_message(payload=None):

@@ -165,7 +165,7 @@ def issue_info(bot, trigger, match=None):
     ]
 
     if ('title' in data):
-        response.append(data['title'])
+        response.append(emojize(data['title']))
         response.append(bold(' | '))
     response.append(emojize(body))
 
@@ -323,7 +323,7 @@ def fmt_response(bot, trigger, URL, from_regex=False):
     ]
 
     if data['description'] != None:
-        response.append(' - ' + str(data['description']))
+        response.append(' - ' + str(emojize(data['description'])))
 
     if not data['language'].strip() == '':
         response.extend([' | ', data['language'].strip()])
