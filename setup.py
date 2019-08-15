@@ -27,12 +27,14 @@ with open('dev-requirements.txt') as dev_requirements_file:
 
 setup(
     name='sopel_modules.github',
-    version='0.1.7',
+    version='0.2.0',
     description='GitHub module for Sopel',
     long_description=readme + '\n\n' + history,
     long_description_content_type='text/markdown',
     author='Max Gurela',
     author_email='maxpowa@outlook.com',
+    maintainer='dgw',
+    maintainer_email='dgw@technobabbl.es',
     url='https://github.com/sopel-irc/sopel-github',
     packages=find_packages('.'),
     namespace_packages=['sopel_modules'],
