@@ -1,3 +1,10 @@
+Changes in 0.2.1
+================
+
+Fixed:
+* Comments containing blank lines would cause errors (#43)
+
+
 Changes in 0.2.0
 ================
 
