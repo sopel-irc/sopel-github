@@ -1,3 +1,45 @@
+Changes in 0.2.1
+================
+
+Fixed:
+* Comments containing blank lines would cause errors (#43)
+
+
+Changes in 0.2.0
+================
+
+Added:
+* Handling for several new event types:
+  * Pull request reviews (#20)
+  * Pull request assignments (#23)
+  * Pull request labels (#23)
+  * Pull request milestones (#35)
+  * Issue & pull request title edits (#36)
+  * Releases (#21)
+* Handling of draft pull requests (#34)
+* Handling for draft pull requests marked ready for review (#34)
+* Converting `:emoji:` to Unicode emoji in most text output (#17)
+  * Requires optional dependency: https://pypi.org/project/emoji/
+
+Changed:
+* `secret` setting is now called `client_secret` (#42)
+  * The plugin will automatically migrate configs to use the new name, but
+    manual editing is encouraged in advanced setups (e.g. if the user Sopel
+    runs as cannot write to the config file)
+* Quoted text is ignored when generating comment output (#41)
+* Unicode ellipsis now used instead of three periods (#31)
+* Oxford comma now used in generated lists (#40)
+* Webhook payload processing is handed off to a separate thread (#22)
+  * Bottle can handle only one request at a time; doing this should minimize
+    the potential for failed deliveries, as GitHub's webhook delivery service
+    times out very quickly
+
+Fixed:
+* GitHub URL regexes should match all possible usernames & repo names (#38)
+  * Of particular note: dots (`.`) are now recognized in repository links,
+    such as Sopel's website repo: https://github.com/sopel-irc/sopel.chat
+
+
 Changes in 0.2.0a16
 ===================
 
@@ -9,6 +51,7 @@ Changes in 0.2.0a15
 
 Fixed:
 * Actually fire event handler for PRs marked `ready_for_review`
+
 
 Changes in 0.1.7
 ================
