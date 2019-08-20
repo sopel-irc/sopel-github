@@ -18,6 +18,8 @@ Copyright 2019 dgw
 from __future__ import unicode_literals
 
 import re
+import textwrap
+
 import requests
 
 from sopel.formatting import color
@@ -71,8 +73,8 @@ def fmt_branch(s, row=None):
 
 def fmt_short_comment_body(body):
     text = [line for line in body.splitlines() if line and line[0] != '>']
-    short = text[0]
-    short = short + '…' if short != body else short
+    short = textwrap.wrap(text[0], 250)[0]
+    short = short + ' […]' if short != body else short
     return short
 
 
