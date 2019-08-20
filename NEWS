@@ -1,3 +1,10 @@
+Changes in 0.2.2b1
+==================
+
+Changed:
+* Truncate comments to 250 characters (no PR yet)
+
+
 Changes in 0.2.1
 ================
 
