@@ -53,11 +53,13 @@ githubUsername = r'[A-Za-z\d](?:[A-Za-z\d]|-(?=[A-Za-z\d])){0,38}'
 # not copied from anywhere, but handy to simply reuse
 githubRepoSlug = r'[A-Za-z0-9\.\-]+'
 # lots of regex and other globals to make this stuff work
-issueURL = (r'https?://(?:www\.)?github.com/({username}/{repo})/(?:issues|pull)/([\d]+)(?:#issuecomment-([\d]+))?'.format(username=githubUsername, repo=githubRepoSlug))
-commitURL = (r'https?://(?:www\.)?github.com/({username}/{repo})/(?:commit)/([A-z0-9\-]+)'.format(username=githubUsername, repo=githubRepoSlug))
-regex = re.compile(issueURL)
+baseURL = r'https?://(?:www\.)?github.com/({username}/{repo})'.format(username=githubUsername, repo=githubRepoSlug)
+repoURL = baseURL + r'/?(?!\S)'
+issueURL = baseURL + r'/(?:issues|pull)/([\d]+)(?:#issuecomment-([\d]+))?'
+commitURL = baseURL + r'/(?:commit)/([A-z0-9\-]+)'
+repoRegex = re.compile(repoURL)
+issueRegex = re.compile(issueURL)
 commitRegex = re.compile(commitURL)
-repoRegex = re.compile(r'github\.com/({username})/({repo})/?(?!\S)'.format(username=githubUsername, repo=githubRepoSlug))
 sopel_instance = None
 
 
@@ -86,8 +88,8 @@ def setup(sopel):
     sopel.config.define_section('github', GitHubSection)
     if 'url_callbacks' not in sopel.memory:
         sopel.memory['url_callbacks'] = tools.SopelMemory()
-    sopel.memory['url_callbacks'][regex] = issue_info
-    sopel.memory['url_callbacks'][repoRegex] = data_url
+    sopel.memory['url_callbacks'][repoRegex] = repo_info
+    sopel.memory['url_callbacks'][issueRegex] = issue_info
     sopel.memory['url_callbacks'][commitRegex] = commit_info
 
     if sopel.config.github.webhook:
@@ -102,8 +104,8 @@ def setup(sopel):
 
 
 def shutdown(sopel):
-    del sopel.memory['url_callbacks'][regex]
     del sopel.memory['url_callbacks'][repoRegex]
+    del sopel.memory['url_callbacks'][issueRegex]
     del sopel.memory['url_callbacks'][commitRegex]
     shutdown_webhook(sopel)
 
@@ -252,9 +254,10 @@ def get_data(bot, trigger, URL):
     return data
 
 
-@rule(r'https?://github\.com/([^ /]+?)/([^ /]+)/?(?!\S)')
-def data_url(bot, trigger):
-    URL = 'https://api.github.com/repos/%s/%s' % (trigger.group(1).strip(), trigger.group(2).strip())
+@rule('.*%s.*' % repoURL)
+def repo_info(bot, trigger):
+    user, repo = [s.strip() for s in trigger.group(1).split('/', 1)]
+    URL = 'https://api.github.com/repos/%s/%s' % (user, repo)
     fmt_response(bot, trigger, URL, True)
 
 
