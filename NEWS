@@ -1,3 +1,14 @@
+Changes in 0.2.2
+================
+
+Changed:
+* Comment bodies will be shortened to approx. 250 characters, to try and stay
+  within the length limit of one IRC line (#45)
+
+Fixed:
+* Repo URLs can be detected even with leading text on the line (#44)
+
+
 Changes in 0.2.1
 ================
 
@@ -76,7 +87,7 @@ Changes in 0.1.4
 ================
 
 Changed:
-* "GitHub" is now properly capitalized everywhere in text output. (#9)
+* "GitHub" is now properly capitalized everywhere in text output (#9)
 * Usage output uses `help_prefix` from config instead of hardcoded `.` (#12)
 
 Fixed:
@@ -87,9 +98,9 @@ Changes in 0.1.3
 ================
 
 Meta:
-* Moved to Sopel organization on GitHub; new maintainer.
+* Moved to Sopel organization on GitHub; new maintainer
 
 Changed:
-* Uses requests instead of deprecated sopel.web functions. (Sopel itself
+* Uses requests instead of deprecated sopel.web functions (Sopel itself
   requires requests, so we don't have to.)
-* Fetched git.io links use HTTPS now.
+* Fetched git.io links use HTTPS now
