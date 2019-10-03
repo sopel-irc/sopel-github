@@ -305,24 +305,15 @@ def fmt_issue_milestone_message(payload=None):
         payload = current_payload
 
     added = payload['action'] == 'milestoned'
-    # GitHub doesn't send the milestone details with a "demilestoned" payload,
-    # so we can't tell which one was removed… See forum thread, which will
-    # hopefully get a response from GitHub staff someday:
-    # https://github.community/t5/GitHub-API-Development-and/Webhooks-quot-demilestoned-quot-payload-does-not-include-removed/m-p/23620
-    stone = (
-        "the {} milestone".format(payload['issue']['milestone']['title'])
-        if added
-        else "its milestone"
-    )
 
-    return '[{}] {} {} {} #{} {} {}'.format(
+    return '[{}] {} {} {} #{} {} the {} milestone'.format(
                   fmt_repo(payload['repository']['name']),
                   fmt_name(payload['sender']['login']),
                   'added' if added else 'removed',
                   get_issue_type(payload),
                   get_issue_or_pr_number(payload),
                   'to' if added else 'from',
-                  stone)
+                  payload['milestone']['title'])
 
 
 def fmt_issue_comment_summary_message(payload=None):
