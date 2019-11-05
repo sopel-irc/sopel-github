@@ -72,9 +72,10 @@ def fmt_branch(s, row=None):
 
 
 def fmt_short_comment_body(body):
-    text = [line for line in body.splitlines() if line and line[0] != '>']
-    short = textwrap.wrap(text[0], 250)[0]
-    short = short + ' […]' if short != body else short
+    lines = [line for line in body.splitlines() if line and line[0] != '>']
+    short = textwrap.wrap(lines[0], 250)[0]
+    if len(lines) > 1 or short != lines[0]:
+        short += ' […]'
     return short
 
 
