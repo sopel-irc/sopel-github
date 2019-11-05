@@ -1,3 +1,16 @@
+Changes in 0.2.3
+================
+
+Changed:
+* Milestone name is now included in `demilestoned` webhook events (#46)
+  * GitHub originally didn't include this information in the webhook payload,
+    but started sending it in approximately late-summer 2019
+
+Fixed:
+* Comments that were not truncated would still have `[…]` appended if the
+  comment body included quoted text (#47)
+
+
 Changes in 0.2.2
 ================
 
