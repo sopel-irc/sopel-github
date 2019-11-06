@@ -38,37 +38,37 @@ current_payload = None
 def fmt_url(s, row=None):
     if not row:
         row = current_row
-    return color(s, fg=row[3])
+    return color(s, fg=row.url_color)
 
 
 def fmt_tag(s, row=None):
     if not row:
         row = current_row
-    return color(s, fg=row[4])
+    return color(s, fg=row.tag_color)
 
 
 def fmt_repo(s, row=None):
     if not row:
         row = current_row
-    return color(s, fg=row[5])
+    return color(s, fg=row.repo_color)
 
 
 def fmt_name(s, row=None):
     if not row:
         row = current_row
-    return color(s, fg=row[6])
+    return color(s, fg=row.name_color)
 
 
 def fmt_hash(s, row=None):
     if not row:
         row = current_row
-    return color(s, fg=row[7])
+    return color(s, fg=row.hash_color)
 
 
 def fmt_branch(s, row=None):
     if not row:
         row = current_row
-    return color(s, fg=row[8])
+    return color(s, fg=row.branch_color)
 
 
 def fmt_short_comment_body(body):
@@ -270,14 +270,14 @@ def fmt_issue_title_edit(payload=None):
 def fmt_issue_assignee_message(payload=None):
     if not payload:
         payload = current_payload
-    
+
     target = ''
     self_assign = False
     if (payload['assignee']['login'] == payload['sender']['login']):
         self_assign = True
     else:
         target = 'to ' if payload['action'] == 'assigned' else 'from '
-        target = target + fmt_name(payload['assignee']['login']) 
+        target = target + fmt_name(payload['assignee']['login'])
     return '[{}] {} {}{} {} #{} {}'.format(
                   fmt_repo(payload['repository']['name']),
                   fmt_name(payload['sender']['login']),

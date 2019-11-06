@@ -2,7 +2,7 @@
 """
 github.py - Sopel GitHub Module
 Copyright 2015 Max Gurela
-Copyright 2019 dgw
+Copyright 2019 dgw, Rusty Bower
 
  _______ __ __   __           __
 |     __|__|  |_|  |--.--.--.|  |--.
@@ -20,7 +20,11 @@ from sopel.config.types import StaticSection, ValidatedAttribute
 
 from . import formatting
 from .formatting import shorten_url, emojize
-from .webhook import setup_webhook, shutdown_webhook
+from .utils import get_db_session
+from .webhook import setup_webhook, shutdown_webhook, GithubHooks
+
+from sqlalchemy.exc import OperationalError, SQLAlchemyError
+from sqlalchemy.orm import scoped_session, sessionmaker
 
 import operator
 from collections import deque
@@ -116,6 +120,16 @@ def shutdown(sopel):
 |_______|___|__|_______|    |___|   |___._|__| |_____||__||__|__|___  |
                                                                 |_____|
 '''
+
+
+def get_db_session(bot):
+    try:
+        engine = bot.db.connect()
+    except OperationalError:
+        print("OperationalError: Unable to connect to database.")
+        raise
+
+    return scoped_session(sessionmaker(bind=engine))
 
 
 def fetch_api_endpoint(bot, url):
@@ -381,33 +395,45 @@ def configure_repo_messages(bot, trigger):
         'state': '{}:{}'.format(repo_name, channel)}
     auth_url = 'https://github.com/login/oauth/authorize?{}'.format(urlencode(auth_data))
 
-    conn = bot.db.connect()
-    c = conn.cursor()
+    session = get_db_session(bot)
 
-    c.execute('SELECT * FROM gh_hooks WHERE channel = ? AND repo_name = ?', (channel, repo_name))
-    result = c.fetchone()
-    if not result:
-        c.execute('''INSERT INTO gh_hooks (channel, repo_name, enabled) VALUES (?, ?, ?)''', (channel, repo_name, enabled))
-        bot.say("Successfully enabled listening for {repo}'s events in {chan}.".format(chan=channel, repo=repo_name))
-        bot.say('Great! Please allow me to create my webhook by authorizing via this link: ' + shorten_url(auth_url))
-        bot.say('Once that webhook is successfully created, I\'ll post a message in here. Give me about a minute or so to set it up after you authorize. You can configure the colors that I use to display webhooks with {}gh-hook-color'.format(bot.config.core.help_prefix))
-    else:
-        c.execute('''UPDATE gh_hooks SET enabled = ? WHERE channel = ? AND repo_name = ?''', (enabled, channel, repo_name))
-        bot.say("Successfully {state} the subscription to {repo}'s events".format(state='enabled' if enabled else 'disabled', repo=repo_name))
-        if enabled:
+    try:
+        hook = session.query(GithubHooks) \
+            .filter(GithubHooks.channel == channel) \
+            .filter(GithubHooks.repo_name == repo_name) \
+            .one_or_none()
+        if hook is None:
+            hook = GithubHooks(channel=channel, repo_name=repo_name, enabled=enabled)
+            session.add(hook)
+            session.commit()
+
+            bot.say("Successfully enabled listening for {repo}'s events in {chan}.".format(chan=channel, repo=repo_name))
             bot.say('Great! Please allow me to create my webhook by authorizing via this link: ' + shorten_url(auth_url))
             bot.say('Once that webhook is successfully created, I\'ll post a message in here. Give me about a minute or so to set it up after you authorize. You can configure the colors that I use to display webhooks with {}gh-hook-color'.format(bot.config.core.help_prefix))
-    conn.commit()
-    conn.close()
+        else:
+            hook.channel = channel
+            hook.repo_name = repo_name
+            hook.enabled = enabled
+            session.commit()
+
+            bot.say("Successfully {state} the subscription to {repo}'s events".format(state='enabled' if enabled else 'disabled', repo=repo_name))
+            if enabled:
+                bot.say('Great! Please allow me to create my webhook by authorizing via this link: ' + shorten_url(auth_url))
+                bot.say('Once that webhook is successfully created, I\'ll post a message in here. Give me about a minute or so to set it up after you authorize. You can configure the colors that I use to display webhooks with {}gh-hook-color'.format(bot.config.core.help_prefix))
+    except SQLAlchemyError:
+        session.rollback()
+        raise
+    finally:
+        session.close()
 
 
 @commands('gh-hook-color')
 @require_chanmsg('[GitHub] GitHub hooks can only be configured in a channel')
 @example('.gh-hook-color maxpowa/Inumuta 13 15 6 6 14 2')
 def configure_repo_colors(bot, trigger):
-    '''
+    """
     .gh-hook-color <repo> <repo color> <name color> <branch color> <tag color> <hash color> <url color> - Set custom colors for the webhook messages (Uses mIRC color indicies)
-    '''
+    """
     allowed = bot.privileges[trigger.sender].get(trigger.nick, 0) >= OP
     if not allowed and not trigger.admin:
         return bot.msg(trigger.sender, 'You must be a channel operator to use this command!')
@@ -426,26 +452,40 @@ def configure_repo_colors(bot, trigger):
     if len(colors) != 6:
         return bot.say('You must provide exactly 6 colors! See "{}help gh-hook-color" for more information.'.format(bot.config.core.help_prefix))
 
-    conn = bot.db.connect()
-    c = conn.cursor()
+    session = get_db_session(bot)
 
-    c.execute('SELECT * FROM gh_hooks WHERE channel = ? AND repo_name = ?', (channel, repo_name))
-    result = c.fetchone()
-    if not result:
-        return bot.say('Please use "{}gh-hook {} enable" before attempting to configure colors!'.format(bot.config.core.help_prefix, repo_name))
-    else:
-        combined = colors
-        combined.append(channel)
-        combined.append(repo_name)
-        c.execute('''UPDATE gh_hooks SET repo_color = ?, name_color = ?, branch_color = ?, tag_color = ?,
-                     hash_color = ?, url_color = ? WHERE channel = ? AND repo_name = ?''', combined)
-        conn.commit()
-        c.execute('SELECT * FROM gh_hooks WHERE channel = ? AND repo_name = ?', (channel, repo_name))
-        row = c.fetchone()
-        bot.say("[{}] Example name: {} tag: {} commit: {} branch: {} url: {}".format(
-                formatting.fmt_repo(repo_name, row),
-                formatting.fmt_name(trigger.nick, row),
-                formatting.fmt_tag('tag', row),
-                formatting.fmt_hash('c0mm17', row),
-                formatting.fmt_branch('master', row),
-                formatting.fmt_url('http://git.io/', row)))
+    try:
+        hook = session.query(GithubHooks) \
+            .filter(GithubHooks.channel == channel) \
+            .filter(GithubHooks.repo_name == repo_name) \
+            .one_or_none()
+        if hook is None:
+            return bot.say('Please use "{}gh-hook {} enable" before attempting to configure colors!'.format(bot.config.core.help_prefix, repo_name))
+        else:
+            hook.channel = channel
+            hook.repo_name = repo_name
+            hook.repo_color = colors[0]
+            hook.name_color = colors[1]
+            hook.branch_color = colors[2]
+            hook.tag_color = colors[3]
+            hook.hash_color = colors[4]
+            hook.url_color = colors[5]
+            session.commit()
+
+            row = session.query(GithubHooks) \
+               .filter(GithubHooks.channel == channel) \
+               .filter(GithubHooks.repo_name == repo_name) \
+               .one_or_none()
+
+            bot.say("[{}] Example name: {} tag: {} commit: {} branch: {} url: {}".format(
+                    formatting.fmt_repo(repo_name, row),
+                    formatting.fmt_name(trigger.nick, row),
+                    formatting.fmt_tag('tag', row),
+                    formatting.fmt_hash('c0mm17', row),
+                    formatting.fmt_branch('master', row),
+                    formatting.fmt_url('https://git.io/', row)))
+    except SQLAlchemyError:
+        session.rollback()
+        raise
+    finally:
+        session.close()
