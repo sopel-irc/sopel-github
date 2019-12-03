@@ -1,3 +1,11 @@
+Changes in 0.2.4
+================
+
+Fixed:
+* Comments with trailing whitespace incorrectly had `[…]` appended even if the
+  body contained only one line of (non-quoted) text (#50)
+
+
 Changes in 0.2.3
 ================
 
