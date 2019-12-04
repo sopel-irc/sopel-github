@@ -156,12 +156,14 @@ def handle_auth_response():
     channel = state.split(':')[1]
 
     data = {'client_id': sopel_instance.config.github.client_id,
-             'client_secret': sopel_instance.config.github.secret,
-             'code': code}
+            'client_secret': sopel_instance.config.github.client_secret,
+            'code': code}
     raw = requests.post('https://github.com/login/oauth/access_token', data=data, headers={'Accept': 'application/json'})
     try:
         res = json.loads(raw.text)
 
+        if 'error' in res:
+            raise ValueError('{err}: {desc}'.format(err=res['error'], desc=res['error_description'])
         if 'scope' not in res:
             raise ValueError('You\'ve already completed authorization on this repo')
         if 'write:repo_hook' not in res['scope']:
