@@ -163,7 +163,7 @@ def handle_auth_response():
         res = json.loads(raw.text)
 
         if 'error' in res:
-            raise ValueError('{err}: {desc}'.format(err=res['error'], desc=res['error_description'])
+            raise ValueError('{err}: {desc}'.format(err=res['error'], desc=res['error_description']))
         if 'scope' not in res:
             raise ValueError('You\'ve already completed authorization on this repo')
         if 'write:repo_hook' not in res['scope']:
