@@ -23,11 +23,12 @@ printing details of:
  * Issues
  * Issue Comments
  * Pull Requests
+ * Pull Request Comments
  * Repositories
 
-Pretty prints repository details on command, using `.gh user/repo` or `.github
-user/repo`. If you omit the user, it will assume your IRC nick is the user. For
-example:
+Also pretty prints repository details on command, using either `.gh user/repo`
+or `.github user/repo`. If you omit the user, it will assume your IRC nick is
+the user. For example:
 
 ```
 <@maxpowa> .gh sopel-github
@@ -42,29 +43,35 @@ example:
         | Watchers: 1 | Forks: 8 | Network: 8 | Open Issues: 18 |
         https://github.com/sopel-irc/sopel-github
 ```
-If you have [the `emoji` package](https://pypi.org/project/emoji/) installed, `:emoji_name:`s will be converted to Unicode emoji in the output.
+
+If you have [the `emoji` package](https://pypi.org/project/emoji/) installed,
+most `:emoji_name:`s will be converted to Unicode emoji in the output. (GitHub
+supports some non-standard names that this plugin doesn't handle yet.)
 
 
 ### API Keys & Usage
 
-GitHub APIs have some fairly lenient unauthorized request limits, but you may
+GitHub's API has some fairly lenient unauthorized request limits, but you may
 find yourself hitting them. In order to prevent yourself from hitting these
-limits (and potentially being blacklisted), you should generate GitHub API keys
-for yourself. Fill out the information at
+limits (and potentially being blacklisted), you should generate GitHub API
+keys for yourself. Fill out the information at
 https://github.com/settings/applications/new and then populate your
 configuration with your newly generated client key and secret.
 
-__IF YOU PLAN ON USING WEBHOOK FUNCTIONALITY:__ You _must_ properly fill out the
-"Authorization callback URL" to match the external URL you plan to use for the
-webhook.
+__IF YOU PLAN ON USING WEBHOOK FUNCTIONALITY:__ You _must_ properly fill out
+the "Authorization callback URL" to match the external URL you plan to use for
+the webhook.
 
 
 ## Webhook Functionality
 
 Webhook functionality is __disabled__ by default. It requires slightly more
-technical knowledge and configuration may vary depending on your system. There's
-two ways this may be configured, behind a proxy or exposed to the web.
+technical knowledge and configuration may vary depending on your system.
 
+### Configuring Webhooks
+
+There are two possible ways to set this up: behind a proxy or directly exposed
+to the web.
 
 #### Configuring behind a proxy
 
@@ -73,6 +80,7 @@ there may be security flaws in the other method.
 
 First, configure the GitHub module. You may do so by running `sopel
 --configure-modules` or changing the config file directly.
+
 ```
 [github]
 webhook = True
@@ -80,21 +88,23 @@ webhook_host = 127.0.0.1
 webhook_port = 3333
 external_url = http://bad.code.brought.to.you.by.maxpowa.us/webhook
 ```
+
 The above configuration is only listening on `localhost (127.0.0.1)`, because
-I'm using a reverse proxy in nginx to proxy `/webhook` to port 3333. The reverse
-proxy configuration would be fairly simple, as shown below. Auth must be
-included, to match the "Authorization callback URL" you included in generating
-the API keys.
+I'm using a reverse proxy in nginx to proxy `/webhook` to port 3333. The
+reverse proxy configuration would be fairly simple, as shown below. `/auth`
+must be included to match the "Authorization callback URL" you set when
+generating the API keys.
+
 ```
 location ~ /(webhook|auth) {
     proxy_pass http://127.0.0.1:3333;
 }
-``` 
+```
 
 #### Configuring exposed to the web
 
-If you're not using a proxy, your config will look something like the below
-config.
+If you're not using a proxy, your config will look something like this:
+
 ```
 [github]
 webhook = True
@@ -106,9 +116,9 @@ external_url = http://your.ip.here:3333/webhook
 ### Creating hooks
 
 As an OP+ in a channel, you may type `.gh-hook user/repo`. You will see some
-informational text on what you need to do to finalize the hook, including a link
-to click to authorize the creation of the webhook. You will be required to
-authorize the GitHub application to read/write your webhooks (see
+informational text on what you need to do to finalize the hook, including a
+link to click to authorize the creation of the webhook. You will be required
+to authorize the GitHub application to read/write your webhooks (see
 [L163-164](https://github.com/sopel-irc/sopel-github/blob/9afaf1e51d9c28a1bbba7b442f6e7dea7db74018/sopel_modules/github/webhook.py#L163-L164))
 but this should be the _only_ permissions we need.
 
@@ -123,10 +133,10 @@ but this should be the _only_ permissions we need.
         configure the colors that I use to display webhooks with .gh-hook-color
 ```
 
-After you've authorized the webhook creation, you will be redirected to a simple
-page informing you that the bot succeeded/failed creating your hook. Assuming it
-succeeded, you should see a generic message appear in the channel you activated
-it in.
+After you've authorized the webhook creation, you will be redirected to a
+simple page informing you that the bot succeeded/failed creating your hook.
+Assuming it succeeded, you should see a generic message appear in the channel
+you activated it in.
 
 
 ### Customizing hooks
