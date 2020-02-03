@@ -139,15 +139,7 @@ def issue_info(bot, trigger, match=None):
         return NOLIMIT
     data = json.loads(raw)
     try:
-        lines = data['body'].splitlines()
-        if len(lines) > 1 and len(lines[0]) > 180:
-            body = lines[0] + '…'
-        elif len(lines) > 2 and len(lines[0]) < 180:
-            body = ' '.join(lines[:2]) + '…'
-        elif len(lines) > 0:
-            body = lines[0]
-        else:
-            body = ''
+        body = formatting.fmt_short_comment_body(data['body'])
     except (KeyError):
         bot.say('[GitHub] API says this is an invalid issue. Please report this if you know it\'s a correct link!')
         return NOLIMIT
