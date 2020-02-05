@@ -198,7 +198,7 @@ def commit_info(bot, trigger, match=None):
         ' [',
         match.group(1),
         '] ',
-        data['author']['login'],
+        data['author']['login'] if data['author'] else data['commit']['author']['name'],
         ': ',
         body,
         bold(' | '),
