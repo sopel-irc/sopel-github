@@ -13,7 +13,7 @@ Copyright 2019 dgw
 
 from __future__ import unicode_literals
 from sopel import tools
-from sopel.module import commands, rule, OP, NOLIMIT, example, require_chanmsg
+from sopel.module import OP, NOLIMIT, commands, example, require_chanmsg, url
 from sopel.formatting import bold, color
 from sopel.tools.time import get_timezone, format_time
 from sopel.config.types import StaticSection, ValidatedAttribute
@@ -57,10 +57,6 @@ baseURL = r'https?://(?:www\.)?github.com/({username}/{repo})'.format(username=g
 repoURL = baseURL + r'/?(?!\S)'
 issueURL = baseURL + r'/(?:issues|pull)/([\d]+)(?:#issuecomment-([\d]+))?'
 commitURL = baseURL + r'/(?:commit)/([A-z0-9\-]+)'
-repoRegex = re.compile(repoURL)
-issueRegex = re.compile(issueURL)
-commitRegex = re.compile(commitURL)
-sopel_instance = None
 
 
 class GitHubSection(StaticSection):
@@ -86,11 +82,6 @@ def configure(config):
 
 def setup(sopel):
     sopel.config.define_section('github', GitHubSection)
-    if 'url_callbacks' not in sopel.memory:
-        sopel.memory['url_callbacks'] = tools.SopelMemory()
-    sopel.memory['url_callbacks'][repoRegex] = repo_info
-    sopel.memory['url_callbacks'][issueRegex] = issue_info
-    sopel.memory['url_callbacks'][commitRegex] = commit_info
 
     if sopel.config.github.webhook:
         setup_webhook(sopel)
@@ -104,9 +95,6 @@ def setup(sopel):
 
 
 def shutdown(sopel):
-    del sopel.memory['url_callbacks'][repoRegex]
-    del sopel.memory['url_callbacks'][issueRegex]
-    del sopel.memory['url_callbacks'][commitRegex]
     shutdown_webhook(sopel)
 
 '''
@@ -125,7 +113,7 @@ def fetch_api_endpoint(bot, url):
     return requests.get(url + oauth).text
 
 
-@rule('.*%s.*' % issueURL)
+@url(issueURL)
 def issue_info(bot, trigger, match=None):
     match = match or trigger
     URL = 'https://api.github.com/repos/%s/issues/%s' % (match.group(1), match.group(2))
@@ -166,7 +154,7 @@ def issue_info(bot, trigger, match=None):
     bot.say(''.join(response))
 
 
-@rule('.*%s.*' % commitURL)
+@url(commitURL)
 def commit_info(bot, trigger, match=None):
     match = match or trigger
     URL = 'https://api.github.com/repos/%s/commits/%s' % (match.group(1), match.group(2))
@@ -246,7 +234,7 @@ def get_data(bot, trigger, URL):
     return data
 
 
-@rule('.*%s.*' % repoURL)
+@url(repoURL)
 def repo_info(bot, trigger):
     user, repo = [s.strip() for s in trigger.group(1).split('/', 1)]
     URL = 'https://api.github.com/repos/%s/%s' % (user, repo)
