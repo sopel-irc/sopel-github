@@ -2,7 +2,7 @@
 """
 webhook.py - Sopel GitHub Module
 Copyright 2015 Max Gurela
-Copyright 2019 dgw
+Copyright 2019 dgw, Rusty Bower
 
  _______ __ __   __           __
 |     __|__|  |_|  |--.--.--.|  |--.
@@ -24,6 +24,12 @@ from sopel.tools.time import get_timezone, format_time
 from .formatting import get_formatted_response
 from .formatting import fmt_repo
 from .formatting import fmt_name
+from .utils import get_db_session
+
+from sqlalchemy import Boolean, Column, Integer, String
+from sqlalchemy.exc import OperationalError, SQLAlchemyError
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import scoped_session, sessionmaker
 
 from threading import Thread
 import bottle
@@ -32,6 +38,22 @@ import requests
 
 # Because I'm a horrible person
 sopel_instance = None
+
+Base = declarative_base()
+
+
+class GithubHooks(Base):
+    __tablename__ = 'gh_hooks'
+    channel = Column(String(255), primary_key=True)
+    repo_name = Column(String(255), primary_key=True)
+    enabled = Column(Boolean, default=True)
+    url_color = Column(Integer, default=2)
+    tag_color = Column(Integer, default=6)
+    repo_color = Column(Integer, default=13)
+    name_color = Column(Integer, default=15)
+    hash_color = Column(Integer, default=14)
+    branch_color = Column(Integer, default=6)
+
 
 def setup_webhook(sopel):
     global sopel_instance
@@ -46,32 +68,14 @@ def setup_webhook(sopel):
     sopel.memory['gh_webhook_server'] = base
     sopel.memory['gh_webhook_thread'] = server
 
-    conn = sopel.db.connect()
-    c = conn.cursor()
-
+    # Catch any errors connecting to database
     try:
-        c.execute('SELECT * FROM gh_hooks')
-    except Exception:
-        create_table(sopel, c)
-        conn.commit()
-    conn.close()
+        engine = sopel.db.connect()
+    except OperationalError:
+        print("OperationalError: Unable to connect to database.")
+        raise
 
-
-def create_table(bot, c):
-    primary_key = '(channel, repo_name)'
-
-    c.execute('''CREATE TABLE IF NOT EXISTS gh_hooks (
-        channel TEXT,
-        repo_name TEXT,
-        enabled BOOL DEFAULT 1,
-        url_color TINYINT DEFAULT 2,
-        tag_color TINYINT DEFAULT 6,
-        repo_color TINYINT DEFAULT 13,
-        name_color TINYINT DEFAULT 15,
-        hash_color TINYINT DEFAULT 14,
-        branch_color TINYINT DEFAULT 6,
-        PRIMARY KEY {0}
-        )'''.format(primary_key))
+    Base.metadata.create_all(engine)
 
 
 def shutdown_webhook(sopel):
@@ -102,10 +106,35 @@ class StoppableWSGIRefServer(bottle.ServerAdapter):
 
 
 def get_targets(repo):
-    conn = sopel_instance.db.connect()
-    c = conn.cursor()
-    c.execute('SELECT * FROM gh_hooks WHERE repo_name = ? AND enabled = 1', (repo.lower(), ))
-    return c.fetchall()
+    session = get_db_session(sopel_instance)
+
+    try:
+        targets = session.query(GithubHooks) \
+                .filter(GithubHooks.repo_name == repo.lower()) \
+                .filter(GithubHooks.enabled == 1) \
+                .all()
+        return targets
+    except SQLAlchemyError:
+        session.rollback()
+        raise
+    finally:
+        session.close()
+
+
+def process_payload(payload, targets):
+    if payload['event'] == 'ping':
+        for row in targets:
+            sopel_instance.msg(row.channel, '[{}] {}: {} (Your webhook is now enabled)'.format(
+                          fmt_repo(payload['repository']['name'], row),
+                          fmt_name(payload['sender']['login'], row),
+                          payload['zen']))
+        return
+
+    for row in targets:
+        messages = get_formatted_response(payload, row)
+        # Write the formatted message(s) to the channel
+        for message in messages:
+            sopel_instance.msg(row.channel, message)
 
 
 def process_payload(payload, targets):
@@ -144,7 +173,7 @@ def webhook():
     payload_handler.start()
 
     # send HTTP response ASAP, hopefully within GitHub's very short timeout
-    return '{"channels":' + json.dumps([target[0] for target in targets]) + '}'
+    return '{"channels":' + json.dumps([target.channel for target in targets]) + '}'
 
 
 @bottle.get('/auth')
