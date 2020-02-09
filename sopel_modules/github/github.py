@@ -235,16 +235,15 @@ def get_data(bot, trigger, URL):
 
 
 @url(repoURL)
-def repo_info(bot, trigger):
-    user, repo = [s.strip() for s in trigger.group(1).split('/', 1)]
+def repo_info(bot, trigger, match=None):
+    user, repo = [s.strip() for s in match.group(1).split('/', 1)]
     URL = 'https://api.github.com/repos/%s/%s' % (user, repo)
     fmt_response(bot, trigger, URL, True)
 
 
 @commands('github', 'gh')
-def github_repo(bot, trigger, match=None):
-    match = match or trigger
-    repo = match.group(2) or match.group(1)
+def github_repo(bot, trigger):
+    repo = trigger.group(2) or trigger.group(1)
 
     if repo.lower() == 'version':
         return bot.say('[GitHub] Version {} by {}, report issues at {}'.format(
