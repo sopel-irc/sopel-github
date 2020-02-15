@@ -1,3 +1,16 @@
+Changes in 0.3.0
+================
+
+Changed:
+* Require Sopel 7.x and use its features (#58, #61)
+* Ignore lines that look like (HTML) comments or headings when shortening
+  comment bodies (#57)
+* Deprecated query string API authentication replaced by HTTP Basic Auth (#62)
+
+Fixed:
+* Handle missing user information in commit data (#59)
+
+
 Changes in 0.2.6
 ================
 
