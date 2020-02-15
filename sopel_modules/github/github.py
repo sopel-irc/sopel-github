@@ -107,10 +107,17 @@ def shutdown(sopel):
 
 
 def fetch_api_endpoint(bot, url):
-    oauth = ''
+    # GitHub deprecated passing OAuth client ID/secret via query parameters in
+    # November 2019, to be fully removed July 1, 2020 (per email notices).
+    # Passing them as user/password in HTTP Basic Authentication works, though.
+    # Since GitHub sent no response after over a week when we asked if this way
+    # would be OK, we're just going to use it anyway.
+    # At least, sending test requests this way didn't generate deprecation
+    # notice emails like using query parameters would.
+    auth = None
     if bot.config.github.client_id and bot.config.github.client_secret:
-        oauth = '?client_id=%s&client_secret=%s' % (bot.config.github.client_id, bot.config.github.client_secret)
-    return requests.get(url + oauth).text
+        auth = (bot.config.github.client_id, bot.config.github.client_secret)
+    return requests.get(url, auth=auth).text
 
 
 @url(issueURL)
