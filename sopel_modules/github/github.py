@@ -348,7 +348,7 @@ def configure_repo_messages(bot, trigger):
     '''
     allowed = bot.privileges[trigger.sender].get(trigger.nick, 0) >= OP
     if not allowed and not trigger.admin:
-        return bot.msg(trigger.sender, 'You must be a channel operator to use this command!')
+        return bot.say('You must be a channel operator to use this command!')
 
     if not trigger.group(2):
         return bot.say(configure_repo_messages.__doc__.strip())
@@ -396,7 +396,7 @@ def configure_repo_colors(bot, trigger):
     '''
     allowed = bot.privileges[trigger.sender].get(trigger.nick, 0) >= OP
     if not allowed and not trigger.admin:
-        return bot.msg(trigger.sender, 'You must be a channel operator to use this command!')
+        return bot.say('You must be a channel operator to use this command!')
 
     if not trigger.group(2):
         return bot.say(configure_repo_colors.__doc__.strip())

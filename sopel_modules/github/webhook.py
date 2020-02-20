@@ -111,17 +111,17 @@ def get_targets(repo):
 def process_payload(payload, targets):
     if payload['event'] == 'ping':
         for row in targets:
-            sopel_instance.msg(row[0], '[{}] {}: {} (Your webhook is now enabled)'.format(
+            sopel_instance.say('[{}] {}: {} (Your webhook is now enabled)'.format(
                           fmt_repo(payload['repository']['name'], row),
                           fmt_name(payload['sender']['login'], row),
-                          payload['zen']))
+                          payload['zen']), row[0])
         return
 
     for row in targets:
         messages = get_formatted_response(payload, row)
         # Write the formatted message(s) to the channel
         for message in messages:
-            sopel_instance.msg(row[0], message)
+            sopel_instance.say(message, row[0])
 
 
 @bottle.get("/webhook")
