@@ -13,7 +13,7 @@ Copyright 2019 dgw
 
 from __future__ import unicode_literals
 from sopel import tools
-from sopel.module import OP, NOLIMIT, commands, example, require_chanmsg, url
+from sopel.module import OP, NOLIMIT, commands, example, require_chanmsg, rule, url
 from sopel.formatting import bold, color
 from sopel.tools.time import get_timezone, format_time
 from sopel.config.types import StaticSection, ValidatedAttribute
@@ -117,12 +117,29 @@ def fetch_api_endpoint(bot, url):
     return requests.get(url, auth=auth).text
 
 
+@rule(r'.*(?<!\S)/?#(\d+)\b.*')
+@require_chanmsg
+def issue_reference(bot, trigger):
+    """
+    Separate function to work around Sopel not loading rules/commands for @url callables.
+    """
+    issue_info(bot, trigger)
+
+
 @url(issueURL)
 def issue_info(bot, trigger, match=None):
-    match = match or trigger
-    URL = 'https://api.github.com/repos/%s/issues/%s' % (match.group(1), match.group(2))
-    if (match.group(3)):
-        URL = 'https://api.github.com/repos/%s/issues/comments/%s' % (match.group(1), match.group(3))
+    if match:  # Link triggered
+        repo = match.group(1)
+        num = match.group(2)
+        URL = 'https://api.github.com/repos/%s/issues/%s' % (repo, num)
+        if (match.group(3)):
+            URL = 'https://api.github.com/repos/%s/issues/comments/%s' % (repo, match.group(3))
+    else:  # Issue/PR number triggered
+        repo = bot.db.get_channel_value('github_issue_repo', trigger.sender)
+        num = trigger.group(1)
+        if not repo:
+            return NOLIMIT
+        URL = 'https://api.github.com/repos/%s/issues/%s' % (repo, num)
 
     try:
         raw = fetch_api_endpoint(bot, URL)
@@ -133,7 +150,7 @@ def issue_info(bot, trigger, match=None):
     try:
         body = formatting.fmt_short_comment_body(data['body'])
     except (KeyError):
-        bot.say('[GitHub] API says this is an invalid issue. Please report this if you know it\'s a correct link!')
+        bot.say('[GitHub] API says this is an invalid issue. Please report this if you know it should work!')
         return NOLIMIT
 
     if body.strip() == '':
@@ -142,9 +159,9 @@ def issue_info(bot, trigger, match=None):
     response = [
         bold('[GitHub]'),
         ' [',
-        match.group(1),
+        repo,
         ' #',
-        match.group(2),
+        num,
         '] ',
         data['user']['login'],
         ': '
