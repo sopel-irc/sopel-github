@@ -346,7 +346,7 @@ def configure_repo_messages(bot, trigger):
     .gh-hook <repo> [enable|disable] - Enable/disable displaying webhooks from repo in current channel (You must be a channel OP)
     Repo notation is just <user/org>/<repo>, not the whole URL.
     '''
-    allowed = bot.privileges[trigger.sender].get(trigger.nick, 0) >= OP
+    allowed = bot.channels[trigger.sender].privileges.get(trigger.nick, 0) >= OP
     if not allowed and not trigger.admin:
         return bot.msg(trigger.sender, 'You must be a channel operator to use this command!')
 
@@ -394,7 +394,7 @@ def configure_repo_colors(bot, trigger):
     '''
     .gh-hook-color <repo> <repo color> <name color> <branch color> <tag color> <hash color> <url color> - Set custom colors for the webhook messages (Uses mIRC color indicies)
     '''
-    allowed = bot.privileges[trigger.sender].get(trigger.nick, 0) >= OP
+    allowed = bot.channels[trigger.sender].privileges.get(trigger.nick, 0) >= OP
     if not allowed and not trigger.admin:
         return bot.msg(trigger.sender, 'You must be a channel operator to use this command!')
 
