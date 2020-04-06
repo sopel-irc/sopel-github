@@ -1,3 +1,10 @@
+Changes in 0.3.1
+================
+
+Fixed:
+* Use of deprecated method `bot.msg()` (#63)
+* Use of deprecated `bot.privileges` property (#64)
+
 Changes in 0.3.0
 ================
 
