@@ -527,7 +527,10 @@ def get_formatted_response(payload, row):
         elif re.match('(assigned|unassigned)', payload['action']):
             messages.append(fmt_issue_assignee_message() + " " + fmt_url(shorten_url(payload['pull_request']['html_url'])))
         elif re.match('(labeled|unlabeled)', payload['action']):
-            messages.append(fmt_issue_label_message() + " " + fmt_url(shorten_url(payload['pull_request']['html_url'])))
+            if payload.get('label', None):
+                # If a label is deleted, for example, we'll get a webhook payload with no details about the removed label.
+                # We skip those; there's no reason to emit action messages to IRC with "unknown label" placeholders.
+                messages.append(fmt_issue_label_message() + " " + fmt_url(shorten_url(payload['pull_request']['html_url'])))
     elif payload['event'] == 'pull_request_review':
         if payload['action'] == 'submitted' and payload['review']['state'] in ['approved', 'changes_requested', 'commented']:
             if payload['review']['state'] == 'commented' and payload['review']['body'] == None:
@@ -547,7 +550,10 @@ def get_formatted_response(payload, row):
         elif re.match('(assigned|unassigned)', payload['action']):
             messages.append(fmt_issue_assignee_message() + " " + fmt_url(shorten_url(payload['issue']['html_url'])))
         elif re.match('(labeled|unlabeled)', payload['action']):
-            messages.append(fmt_issue_label_message() + " " + fmt_url(shorten_url(payload['issue']['html_url'])))
+            if payload.get('label', None):
+                # If a label is deleted, for example, we'll get a webhook payload with no details about the removed label.
+                # We skip those; there's no reason to emit action messages to IRC with "unknown label" placeholders.
+                messages.append(fmt_issue_label_message() + " " + fmt_url(shorten_url(payload['issue']['html_url'])))
         elif re.match('(milestoned|demilestoned)', payload['action']):
             messages.append(fmt_issue_milestone_message() + " " + fmt_url(shorten_url(payload['issue']['html_url'])))
         elif payload['action'] == 'edited':
