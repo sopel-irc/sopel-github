@@ -148,13 +148,15 @@ def issue_info(bot, trigger, match=None):
         return NOLIMIT
     data = json.loads(raw)
     try:
-        body = formatting.fmt_short_comment_body(data['body'])
+        body = data['body']
     except (KeyError):
         bot.say('[GitHub] API says this is an invalid issue. Please report this if you know it should work!')
         return NOLIMIT
 
     if body.strip() == '':
         body = 'No description provided.'
+    else:
+        body = formatting.fmt_short_comment_body(body)
 
     response = [
         bold('[GitHub]'),
