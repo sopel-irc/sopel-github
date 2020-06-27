@@ -283,8 +283,12 @@ def repo_info(bot, trigger, match=None):
 
 
 @commands('github', 'gh')
+@example('.gh sopel-irc/sopel-github')
 def github_repo(bot, trigger):
-    repo = trigger.group(2) or trigger.group(1)
+    repo = trigger.group(3) or None
+
+    if repo is None:
+        return bot.reply('I need a repository name, or `user/reponame`.')
 
     if repo.lower() == 'version':
         return bot.say('[GitHub] Version {} by {}, report issues at {}'.format(
