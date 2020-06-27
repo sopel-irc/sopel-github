@@ -353,10 +353,17 @@ def fmt_pull_request_summary_message(payload=None):
     elif action == 'ready_for_review':
         action = 'readied'
 
-    return '[{}] {} {} pull request #{}: {} ({}...{})'.format(
+    actor = payload['sender']['login']
+    author = payload['pull_request']['user']['login']
+    maybe_possessive = ''
+    if action == 'merged' and actor != author:
+        maybe_possessive = '%s\'s ' % fmt_name(author)
+
+    return '[{}] {} {} {}pull request #{}: {} ({}...{})'.format(
                   fmt_repo(payload['repository']['name']),
-                  fmt_name(payload['sender']['login']),
+                  fmt_name(actor),
                   action,
+                  maybe_possessive,
                   payload['pull_request']['number'],
                   emojize(payload['pull_request']['title']),
                   fmt_branch(base_ref),
