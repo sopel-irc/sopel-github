@@ -99,6 +99,7 @@ class StoppableWSGIRefServer(bottle.ServerAdapter):
 
     def stop(self):
         self.server.shutdown()
+        self.server.server_close()
 
 
 def get_targets(repo):
