@@ -80,9 +80,14 @@ def fmt_short_comment_body(body):
         and not line.startswith('#')  # Markdown heading
         and not line.startswith('<!-')  # commented out HTML-style
     ]
-    short = textwrap.wrap(lines[0], 250)[0]
-    if len(lines) > 1 or short != lines[0]:
+    # abbreviate commit hashes in the text
+    line = re.sub(r'[a-f0-9]{40}', lambda m: m.group(0)[:7], lines[0])
+    # wrap text to get a line of at most 250 chars
+    short = textwrap.wrap(line, 250)[0]
+    # add continuation marker if needed
+    if len(lines) > 1 or short != line:
         short += ' […]'
+
     return short
 
 
