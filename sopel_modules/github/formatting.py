@@ -342,9 +342,6 @@ def fmt_pull_request_summary_message(payload=None):
     if not payload:
         payload = current_payload
 
-    base_ref = payload['pull_request']['base']['label'].split(':')[-1]
-    head_ref = payload['pull_request']['head']['label'].split(':')[-1]
-
     action = payload['action']
     if action == 'closed' and payload['pull_request']['merged']:
         action = 'merged'
@@ -353,14 +350,29 @@ def fmt_pull_request_summary_message(payload=None):
     elif action == 'ready_for_review':
         action = 'readied'
 
-    return '[{}] {} {} pull request #{}: {} ({}...{})'.format(
+    actor = payload['sender']['login']
+    author = payload['pull_request']['user']['login']
+    maybe_possessive = ''
+    if action == 'merged' and actor != author:
+        maybe_possessive = '%s\'s ' % fmt_name(author)
+
+    base = fmt_branch(payload['pull_request']['base']['ref'])
+    head = fmt_branch(payload['pull_request']['head']['ref'])
+    base_repo = payload['pull_request']['base']['user']['login']
+    head_repo = payload['pull_request']['head']['user']['login']
+    if base_repo != head_repo:
+        base = "{}:{}".format(fmt_name(base_repo), base)
+        head = "{}:{}".format(fmt_name(head_repo), head)
+
+    return '[{}] {} {} {}pull request #{}: {} ({}...{})'.format(
                   fmt_repo(payload['repository']['name']),
-                  fmt_name(payload['sender']['login']),
+                  fmt_name(actor),
                   action,
+                  maybe_possessive,
                   payload['pull_request']['number'],
                   emojize(payload['pull_request']['title']),
-                  fmt_branch(base_ref),
-                  fmt_branch(head_ref))
+                  base,
+                  head)
 
 
 def fmt_pull_request_title_edit(payload=None):
