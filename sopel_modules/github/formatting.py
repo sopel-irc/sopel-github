@@ -263,6 +263,37 @@ def fmt_issue_summary_message(payload=None):
                   emojize(payload['issue']['title']))
 
 
+def fmt_issue_incoming_transfer_message(payload=None):
+    if not payload:
+        payload = current_payload
+    # GitHub unfortunately doesn't seem to include any info about the user who
+    # initiated the issue transfer, only the original author/creator.
+    return '[{}] {}#{} by {} was transferred to issue #{}: {}'.format(
+                  fmt_repo(payload['repository']['name']),
+                  fmt_repo(payload['changes']['old_repository']['full_name']),
+                  payload['changes']['old_issue']['number'],
+                  fmt_name(payload['issue']['user']['login']),
+                  payload['issue']['number'],
+                  emojize(payload['issue']['title']))
+
+
+def fmt_issue_outgoing_transfer_message(payload=None):
+    if not payload:
+        payload = current_payload
+    # For "transferred" events (sent for the source repo only), GitHub DOES set
+    # the "sender" info to the user who initiated the transfer, unlike for
+    # inbound transfer hooks (which just look like any other "opened" event
+    # except for the addition of a "changes" object).
+    return '[{}] {} transferred issue #{} by {} to {}#{}: {}'.format(
+                  fmt_repo(payload['repository']['name']),
+                  fmt_name(payload['sender']['login']),
+                  payload['issue']['number'],
+                  fmt_name(payload['issue']['user']['login']),
+                  fmt_repo(payload['changes']['new_repository']['full_name']),
+                  payload['changes']['new_issue']['number'],
+                  emojize(payload['issue']['title']))
+
+
 def fmt_issue_title_edit(payload=None):
     if not payload:
         payload = current_payload
@@ -558,7 +589,10 @@ def get_formatted_response(payload, row):
         messages.append(fmt_pull_request_review_comment_summary_message() + " " + fmt_url(shorten_url(payload['comment']['html_url'])))
     elif payload['event'] == 'issues':
         if re.match('((re)?open|clos)ed', payload['action']):
-            messages.append(fmt_issue_summary_message() + " " + fmt_url(shorten_url(payload['issue']['html_url'])))
+            if 'changes' in payload and all(k in payload['changes'] for k in ['old_repository', 'old_issue']):
+                messages.append(fmt_issue_incoming_transfer_message() + " " + fmt_url(shorten_url(payload['issue']['html_url'])))
+            else:
+                messages.append(fmt_issue_summary_message() + " " + fmt_url(shorten_url(payload['issue']['html_url'])))
         elif re.match('(assigned|unassigned)', payload['action']):
             messages.append(fmt_issue_assignee_message() + " " + fmt_url(shorten_url(payload['issue']['html_url'])))
         elif re.match('(labeled|unlabeled)', payload['action']):
@@ -572,6 +606,8 @@ def get_formatted_response(payload, row):
             if 'changes' in payload:
                 if 'title' in payload['changes']:
                     messages.append(fmt_issue_title_edit() + " " + fmt_url(shorten_url(payload['issue']['html_url'])))
+        elif payload['action'] == 'transferred':
+            messages.append(fmt_issue_outgoing_transfer_message() + " " + fmt_url(shorten_url(payload['changes']['new_issue']['html_url'])))
     elif payload['event'] == 'issue_comment' and payload['action'] == 'created':
         messages.append(fmt_issue_comment_summary_message() + " " + fmt_url(shorten_url(payload['comment']['html_url'])))
     elif payload['event'] == 'gollum':
