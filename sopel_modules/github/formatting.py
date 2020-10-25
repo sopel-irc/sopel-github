@@ -183,6 +183,18 @@ def get_issue_or_pr_number(payload=None):
     return number
 
 
+def get_issue_or_pr_title(payload=None):
+    if not payload:
+        payload = current_payload
+
+    try:
+        title = payload['issue']['title']
+    except KeyError:
+        title = payload['pull_request']['title']
+
+    return title
+
+
 def fmt_push_summary_message(payload=None, row=None):
     if not payload:
         payload = current_payload
@@ -316,27 +328,29 @@ def fmt_issue_assignee_message(payload=None):
     else:
         target = 'to ' if payload['action'] == 'assigned' else 'from '
         target = target + fmt_name(payload['assignee']['login']) 
-    return '[{}] {} {}{} {} #{} {}'.format(
+    return '[{}] {} {}{} {} #{} {} ({})'.format(
                   fmt_repo(payload['repository']['name']),
                   fmt_name(payload['sender']['login']),
                   'self-' if self_assign else '',
                   payload['action'],
                   get_issue_type(payload),
                   get_issue_or_pr_number(payload),
-                  target)
+                  target,
+                  get_issue_or_pr_title(payload))
 
 
 def fmt_issue_label_message(payload=None):
     if not payload:
         payload = current_payload
-    return '[{}] {} {} the label \'{}\' {} {} #{}'.format(
+    return '[{}] {} {} the label \'{}\' {} {} #{} ({})'.format(
                   fmt_repo(payload['repository']['name']),
                   fmt_name(payload['sender']['login']),
                   'added' if payload['action'] == 'labeled' else 'removed',
                   payload['label']['name'],
                   'to' if payload['action'] == 'labeled' else 'from',
                   get_issue_type(payload),
-                  get_issue_or_pr_number(payload))
+                  get_issue_or_pr_number(payload),
+                  get_issue_or_pr_title(payload))
 
 
 def fmt_issue_milestone_message(payload=None):
@@ -345,12 +359,13 @@ def fmt_issue_milestone_message(payload=None):
 
     added = payload['action'] == 'milestoned'
 
-    return '[{}] {} {} {} #{} {} the {} milestone'.format(
+    return '[{}] {} {} {} #{} ({}) {} the {} milestone'.format(
                   fmt_repo(payload['repository']['name']),
                   fmt_name(payload['sender']['login']),
                   'added' if added else 'removed',
                   get_issue_type(payload),
                   get_issue_or_pr_number(payload),
+                  get_issue_or_pr_title(payload),
                   'to' if added else 'from',
                   payload['milestone']['title'])
 
