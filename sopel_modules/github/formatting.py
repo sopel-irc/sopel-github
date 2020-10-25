@@ -380,6 +380,8 @@ def fmt_pull_request_summary_message(payload=None):
         action = 'drafted'
     elif action == 'ready_for_review':
         action = 'readied'
+    elif action == 'converted_to_draft':
+        action = 'un-readied'
 
     actor = payload['sender']['login']
     author = payload['pull_request']['user']['login']
@@ -561,7 +563,7 @@ def get_formatted_response(payload, row):
     elif payload['event'] == 'commit_comment':
         messages.append(fmt_commit_comment_summary() + " " + fmt_url(shorten_url(payload['comment']['html_url'])))
     elif payload['event'] == 'pull_request':
-        if re.match('((re)?open|clos)ed', payload['action']) or payload['action'] == 'ready_for_review':
+        if re.match('((re)?open|clos)ed', payload['action']) or payload['action'] in ['ready_for_review', 'converted_to_draft']:
             messages.append(fmt_pull_request_summary_message() + " " + fmt_url(shorten_url(payload['pull_request']['html_url'])))
         elif payload['action'] == 'edited':
             if 'changes' in payload:
