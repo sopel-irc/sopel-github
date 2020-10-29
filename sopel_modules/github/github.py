@@ -14,7 +14,7 @@ Copyright 2019 dgw
 from __future__ import unicode_literals
 from sopel import tools
 from sopel.module import OP, NOLIMIT, commands, example, require_chanmsg, rule, url
-from sopel.formatting import bold, color
+from sopel.formatting import bold, color, monospace
 from sopel.tools.time import get_timezone, format_time
 from sopel.config.types import StaticSection, ValidatedAttribute
 
@@ -36,6 +36,7 @@ import json
 import requests
 import re
 import datetime
+import base64
 
 '''
  _______           __         __
@@ -53,10 +54,11 @@ githubUsername = r'[A-Za-z\d](?:[A-Za-z\d]|-(?=[A-Za-z\d])){0,38}'
 # not copied from anywhere, but handy to simply reuse
 githubRepoSlug = r'[A-Za-z0-9\.\-]+'
 # lots of regex and other globals to make this stuff work
-baseURL = r'https?://(?:www\.)?github.com/({username}/{repo})'.format(username=githubUsername, repo=githubRepoSlug)
+baseURL = r'https?://(?:www\.)?github\.com/({username}/{repo})'.format(username=githubUsername, repo=githubRepoSlug)
 repoURL = baseURL + r'/?(?!\S)'
 issueURL = baseURL + r'/(?:issues|pull)/([\d]+)(?:#issuecomment-([\d]+))?'
 commitURL = baseURL + r'/(?:commit)/([A-z0-9\-]+)'
+contentURL = baseURL + r'/(?:blob|raw)/([^/\s]+)/([^#\s]+)(?:#L(\d+)(?:-L(\d+))?)?'
 
 
 class GitHubSection(StaticSection):
@@ -236,6 +238,58 @@ def commit_info(bot, trigger, match=None):
         str(file_count),
         ' file' if file_count == 1 else ' files'
     ]
+    bot.say(''.join(response))
+
+
+@url(contentURL)
+def file_info(bot, trigger, match=None):
+    match = match or trigger
+    repo = match.group(1)
+    path = match.group(3)
+    ref = match.group(2)
+    start_line = match.group(4)
+    end_line = match.group(5)
+    URL = 'https://api.github.com/repos/%s/contents/%s?ref=%s' % (repo, path, ref)
+
+    try:
+        raw = fetch_api_endpoint(bot, URL)
+    except HTTPError:
+        bot.say('[GitHub] API returned an error.')
+        return NOLIMIT
+    data = json.loads(raw)
+
+    if data.get('type', 'dir') != 'file':
+        # silently ignore directory contents (and malformed responses) for now
+        return NOLIMIT
+
+    response = [
+        bold('[GitHub]'),
+        ' [',
+        repo,
+        '] ',
+        data['path'],
+        ' @ ',
+        ref,
+    ]
+
+    if start_line:
+        lines = base64.b64decode(data['content']).splitlines()
+
+        try:
+            snippet = lines[int(start_line) - 1].decode('utf-8')
+        except (IndexError, UnicodeDecodeError):
+            # Line doesn't exist, or not a text file
+            snippet = None
+
+        if snippet:
+            response.extend([
+                ' | L',
+                start_line,
+                ': ',
+                monospace(snippet),
+                ' […] (to L%s)' % end_line if end_line else '',
+            ])
+
     bot.say(''.join(response))
 
 
