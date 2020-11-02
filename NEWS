@@ -1,3 +1,28 @@
+Changes in 0.4.0
+================
+
+Added:
+* Optionally treat references like `#123` in chat as issue references,
+  configurable per-channel with new `.gh-repo` command (#65)
+* Webhook handling for issue transfer events (#75)
+* Rudimentary handling for links to files (#76)
+  * Will try to show a useful text snippet if link points to a line/range
+* Webhook handling for PR converted from Ready to Draft (#77)
+
+Changed:
+* PR output includes more details (#69)
+  * Author's name added if merged PR was not created by the merging user
+  * Repo owner's name added to refs if PR head branch is in a fork
+* Commit references in webhook output will be abbreviated in most cases (#78)
+* Include title in assignee, label, & milestone webhook output (#79)
+
+Fixed:
+* Skip label-related events that do not include the label object (#66)
+  * Avoids channel spam when deleting a label, for example
+* Correct fallback behavior for `.gh` command with no argument (#68)
+* Avoid "Socket already in use" error when IRC reconnects (#72)
+
+
 Changes in 0.3.2
 ================
 

@@ -27,8 +27,8 @@ with open('dev-requirements.txt') as dev_requirements_file:
 
 setup(
     name='sopel_modules.github',
-    version='0.3.2',
-    description='GitHub module for Sopel',
+    version='0.4.0',
+    description='GitHub plugin for Sopel',
     long_description=readme + '\n\n' + history,
     long_description_content_type='text/markdown',
     author='Max Gurela',
