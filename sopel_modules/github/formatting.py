@@ -325,15 +325,18 @@ def fmt_issue_title_edit(payload=None):
 def fmt_issue_assignee_message(payload=None):
     if not payload:
         payload = current_payload
-    
+
     target = ''
+    assignee = payload['assignee']['login']
     self_assign = False
-    if (payload['assignee']['login'] == payload['sender']['login']):
+
+    if assignee == payload['sender']['login']:
         self_assign = True
     else:
-        target = 'to ' if payload['action'] == 'assigned' else 'from '
-        target = target + fmt_name(payload['assignee']['login']) 
-    return '[{}] {} {}{} {} #{} {} ({})'.format(
+        prep = 'to' if payload['action'] == 'assigned' else 'from'
+        target = ' {} {}'.format(prep, fmt_name(assignee))
+
+    return '[{}] {} {}{} {} #{}{} ({})'.format(
                   fmt_repo(payload['repository']['name']),
                   fmt_name(payload['sender']['login']),
                   'self-' if self_assign else '',
