@@ -1,3 +1,14 @@
+Changes in 0.4.1
+================
+
+Added:
+* Include link to issue/PR in output when triggered by bare numeric reference
+  in chat (#85)
+
+Fixed:
+* Double space in output of "self-assigned" webhook events (#80)
+
+
 Changes in 0.4.0
 ================
 
