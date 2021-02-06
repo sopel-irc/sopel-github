@@ -176,6 +176,12 @@ def issue_info(bot, trigger, match=None):
         response.append(bold(' | '))
     response.append(emojize(body))
 
+    # append link, if not triggered by a link
+    if not match:
+        link = shorten_url(data['html_url'])
+        response.append(bold(' | '))
+        response.append(link)
+
     bot.say(''.join(response))
 
 
