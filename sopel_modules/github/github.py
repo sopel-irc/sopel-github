@@ -160,6 +160,24 @@ def issue_info(bot, trigger, match=None):
     else:
         body = formatting.fmt_short_comment_body(body)
 
+    type_ = 'issue'
+    state = data['state']
+    if 'pull_request' in data:
+        type_ = 'PR'
+
+    if type_ == 'PR' and state == 'closed':
+        # annoying consequence of "all PRs are issues, but not all issues are PRs"
+        # merge status is only included if the object is fetched via `pulls` endpoint
+        try:
+            pr_raw = fetch_api_endpoint(bot, data['pull_request']['url'])
+        except HTTPError:
+            # just use the "issue" state, fine
+            pass
+
+        pr_data = json.loads(pr_raw)
+        if pr_data.get("merged"):
+            state = "merged"
+
     response = [
         bold('[GitHub]'),
         ' [',
@@ -167,6 +185,10 @@ def issue_info(bot, trigger, match=None):
         ' #',
         num,
         '] ',
+        state,
+        ' ',
+        type_,
+        ' by ',
         data['user']['login'],
         ': '
     ]
