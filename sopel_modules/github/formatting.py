@@ -23,6 +23,7 @@ import textwrap
 import requests
 
 from sopel.formatting import color
+from sopel import tools
 
 try:
     import emoji
@@ -33,6 +34,8 @@ else:
 
 current_row = None
 current_payload = None
+
+LOGGER = tools.get_logger('github')
 
 
 def fmt_url(s, row=None):
@@ -570,6 +573,7 @@ def shorten_url(url):
         res = requests.post('https://git.io', {'url': url})
         return res.headers['location']
     except:
+        LOGGER.exception('Shortening link failed; using long URL.')
         return url
 
 
