@@ -1,3 +1,13 @@
+Changes in 0.4.2
+================
+
+Added:
+* Include issue/PR state when fetching info (#87)
+
+Changed:
+* Link shortening failures will be logged for debugging (#88)
+
+
 Changes in 0.4.1
 ================
 
