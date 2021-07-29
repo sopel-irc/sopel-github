@@ -133,9 +133,10 @@ def issue_info(bot, trigger, match=None):
     if match:  # Link triggered
         repo = match.group(1)
         num = match.group(2)
+        comment_id = match.group(3)
         URL = 'https://api.github.com/repos/%s/issues/%s' % (repo, num)
-        if (match.group(3)):
-            URL = 'https://api.github.com/repos/%s/issues/comments/%s' % (repo, match.group(3))
+        if comment_id:
+            URL = 'https://api.github.com/repos/%s/issues/comments/%s' % (repo, comment_id)
     else:  # Issue/PR number triggered
         repo = bot.db.get_channel_value('github_issue_repo', trigger.sender)
         num = trigger.group(1)
@@ -160,24 +161,7 @@ def issue_info(bot, trigger, match=None):
     else:
         body = formatting.fmt_short_comment_body(body)
 
-    type_ = 'issue'
-    state = data['state']
-    if 'pull_request' in data:
-        type_ = 'PR'
-
-    if type_ == 'PR' and state == 'closed':
-        # annoying consequence of "all PRs are issues, but not all issues are PRs"
-        # merge status is only included if the object is fetched via `pulls` endpoint
-        try:
-            pr_raw = fetch_api_endpoint(bot, data['pull_request']['url'])
-        except HTTPError:
-            # just use the "issue" state, fine
-            pass
-
-        pr_data = json.loads(pr_raw)
-        if pr_data.get("merged"):
-            state = "merged"
-
+    # what we have so far
     response = [
         bold('[GitHub]'),
         ' [',
@@ -185,15 +169,48 @@ def issue_info(bot, trigger, match=None):
         ' #',
         num,
         '] ',
-        state,
-        ' ',
-        type_,
+    ]
+
+    if comment_id:
+        # comment format is simple
+        response.extend([
+            'Comment',
+        ])
+    else:
+        # if it's a link directly to the issue/PR, things are more complicated
+        type_ = 'issue'
+        state = data['state']
+        if 'pull_request' in data:
+            type_ = 'PR'
+
+        if type_ == 'PR' and state == 'closed':
+            # annoying consequence of "all PRs are issues, but not all issues are PRs"
+            # merge status is only included if the object is fetched via `pulls` endpoint
+            try:
+                pr_raw = fetch_api_endpoint(bot, data['pull_request']['url'])
+            except HTTPError:
+                # just use the "issue" state, fine
+                pass
+
+            pr_data = json.loads(pr_raw)
+            if pr_data.get("merged"):
+                state = "merged"
+
+        response.extend([
+            state,
+            ' ',
+            type_,
+        ])
+
+    # reunited once again; the rest of the output format is common
+    response.extend([
         ' by ',
         data['user']['login'],
         ': '
-    ]
+    ])
 
     if ('title' in data):
+        # (well, *almost* common)
         response.append(emojize(data['title']))
         response.append(bold(' | '))
     response.append(emojize(body))
