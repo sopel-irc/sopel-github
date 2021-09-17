@@ -1,3 +1,14 @@
+Changes in 0.4.3
+================
+
+Changed:
+* Skip trying to handle non-repo links, e.g. to topics (#97)
+
+Fixed:
+* Issue comment handling tries to access state (#95)
+* Error in cases where issue/PR body is empty (#98)
+
+
 Changes in 0.4.2
 ================
 
