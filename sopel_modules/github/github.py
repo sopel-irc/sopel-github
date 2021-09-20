@@ -133,13 +133,17 @@ def issue_reference(bot, trigger):
 
 @url(issueURL)
 def issue_info(bot, trigger, match=None):
+    comment_id = None
+
     if match:  # Link triggered
         repo = match.group(1)
         num = match.group(2)
         comment_id = match.group(3)
-        URL = 'https://api.github.com/repos/%s/issues/%s' % (repo, num)
+
         if comment_id:
             URL = 'https://api.github.com/repos/%s/issues/comments/%s' % (repo, comment_id)
+        else:
+            URL = 'https://api.github.com/repos/%s/issues/%s' % (repo, num)
     else:  # Issue/PR number triggered
         repo = bot.db.get_channel_value('github_issue_repo', trigger.sender)
         num = trigger.group(1)
