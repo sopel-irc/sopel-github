@@ -1,3 +1,10 @@
+Changes in 0.4.4
+================
+
+Fixed:
+* Regression in handling inline/standalone issue references (#99)
+
+
 Changes in 0.4.3
 ================
 
