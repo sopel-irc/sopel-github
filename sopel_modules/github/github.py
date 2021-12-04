@@ -55,7 +55,7 @@ githubUsername = (
 )
 # GitHub additionally allows dots ('.') in repo names, as well as hyphens
 # not copied from anywhere, but handy to simply reuse
-githubRepoSlug = r'[A-Za-z0-9\.\-]+'
+githubRepoSlug = r'[A-Za-z0-9\.\-_]+'
 # lots of regex and other globals to make this stuff work
 baseURL = r'https?://(?:www\.)?github\.com/({username}/{repo})'.format(username=githubUsername, repo=githubRepoSlug)
 repoURL = baseURL + r'/?(?!\S)'
