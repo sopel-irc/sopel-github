@@ -1,3 +1,10 @@
+Changes in 0.4.5
+================
+
+Fixed:
+* Link matching did not allow for underscore (`_`) in repo names (#100)
+
+
 Changes in 0.4.4
 ================
 
