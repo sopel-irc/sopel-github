@@ -144,24 +144,24 @@ def verify_request():
     request_headers = bottle.request.headers
     request_body = bottle.request.body.read()
 
-    if not request_headers.get('X-Hub-Signature'):
+    if not request_headers.get('X-Hub-Signature-256'):
         msg = 'Request is missing a hash signature.'
         LOGGER.error(msg)
         debug_log_request(request_headers, request_body)
         return abort_request(401, msg)  # 401 Unauthorized; missing required header
 
-    digest_name, payload_signature = request_headers.get('X-Hub-Signature').split('=')
-    # Currently, GitHub only uses 'sha1'; log a warning if a different digest is
-    # specified by the server. GitHub may have started using a new digest and
-    # this should be confirmed.
-    if digest_name != 'sha1':
+    digest_name, payload_signature = request_headers.get('X-Hub-Signature-256').split('=')
+    # Currently, GitHub provides 'sha256' in the 'X-Hub-Signature-256' header;
+    # log a warning if a different digest is specified.
+    # GitHub may have started using a new digest.
+    if digest_name != 'sha256':
         LOGGER.warning('Unexpected signature digest: {}'.format(digest_name))
         debug_log_request(request_headers, request_body)
 
     try:
         digest_mod = getattr(hashlib, digest_name)
     except AttributeError:
-        # The previous digest check does not require a 'sha1' digest, but simply
+        # The previous digest check does not require a 'sha256' digest, but simply
         # warns when an unexpected digest is specified. The function will
         # attempt to find the digest specified in the signature, but if it is
         # not currently supported by Python's `hashlib`, an error will be logged
