@@ -174,7 +174,7 @@ def verify_request():
     secret = sopel_instance.config.github.webhook_secret
     hash_ = hmac.new(secret.encode('utf-8') if secret else None, msg=request_body, digestmod=digest_mod)
     expected_signature = hash_.hexdigest()
-    if payload_signature != expected_signature:
+    if not hmac.compare_digest(payload_signature, expected_signature):
         msg = 'Request signature mismatch.'
         LOGGER.error(msg)
         debug_log_request(request_headers, request_body)
