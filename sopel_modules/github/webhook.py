@@ -19,7 +19,6 @@ from __future__ import unicode_literals
 
 from sopel import tools
 from sopel.formatting import bold, color
-from sopel.logger import get_logger
 from sopel.tools.time import get_timezone, format_time
 
 from .formatting import get_formatted_response
@@ -33,7 +32,7 @@ import hmac
 import json
 import requests
 
-LOGGER = get_logger(__name__)
+LOGGER = tools.get_logger('github')
 
 # Because I'm a horrible person
 sopel_instance = None
