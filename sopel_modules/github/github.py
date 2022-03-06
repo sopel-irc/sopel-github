@@ -163,10 +163,7 @@ def issue_info(bot, trigger, match=None):
         bot.say('[GitHub] API says this is an invalid issue. Please report this if you know it should work!')
         return NOLIMIT
 
-    if body is None or body.strip() == '':
-        body = 'No description provided.'
-    else:
-        body = formatting.fmt_short_comment_body(body)
+    body = formatting.fmt_short_comment_body(body)
 
     # what we have so far
     response = [

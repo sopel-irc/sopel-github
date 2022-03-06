@@ -75,6 +75,9 @@ def fmt_branch(s, row=None):
 
 
 def fmt_short_comment_body(body):
+    if body is None or body.strip() == '':
+        return '(empty comment)'
+
     lines = [
         line.strip()
         for line in body.splitlines()
@@ -83,6 +86,10 @@ def fmt_short_comment_body(body):
         and not line.startswith('#')  # Markdown heading
         and not line.startswith('<!-')  # commented out HTML-style
     ]
+    # if there's nothing left, the comment is "empty"
+    if not lines:
+        return '(no body text)'
+
     # abbreviate commit hashes in the text
     line = re.sub(r'[a-f0-9]{40}', lambda m: m.group(0)[:7], lines[0])
     # wrap text to get a line of at most 250 chars
