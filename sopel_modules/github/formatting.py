@@ -1,4 +1,4 @@
-# coding=utf8
+# coding=utf-8
 """
 formatting.py - Sopel GitHub Module
 Copyright 2015 Max Gurela
@@ -534,7 +534,7 @@ def fmt_gollum_summary_message(payload=None):
                   fmt_arr_to_sentence(actions.sort()))
 
 
-def fmt_arr_to_sentence(array):
+def fmt_arr_to_sentence(seq):
     if len(seq) <= 2:
         return ' and '.join(seq)
     else:
@@ -612,7 +612,7 @@ def get_formatted_response(payload, row):
                 messages.append(fmt_issue_label_message() + " " + fmt_url(shorten_url(payload['pull_request']['html_url'])))
     elif payload['event'] == 'pull_request_review':
         if payload['action'] == 'submitted' and payload['review']['state'] in ['approved', 'changes_requested', 'commented']:
-            if payload['review']['state'] == 'commented' and payload['review']['body'] == None:
+            if payload['review']['state'] == 'commented' and payload['review']['body'] is None:
                 # Probably an empty "review" fired by a pull_request_review_comment reply, which we'll get in a separate hook delivery.
                 # Wish GitHub didn't fire both events, but they do, even though it makes no sense.
                 # Either way, an empty review must be accompanied by comments, which will get handled when their hook(s) fire(s).
