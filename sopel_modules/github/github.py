@@ -19,7 +19,7 @@ from sopel.tools.time import get_timezone, format_time
 from sopel.config.types import StaticSection, ValidatedAttribute
 
 from . import formatting
-from .formatting import shorten_url, emojize
+from .formatting import emojize
 from .webhook import setup_webhook, shutdown_webhook
 
 import operator
@@ -221,9 +221,8 @@ def issue_info(bot, trigger, match=None):
 
     # append link, if not triggered by a link
     if not match:
-        link = shorten_url(data['html_url'])
         response.append(bold(' | '))
-        response.append(link)
+        response.append(data['html_url'])
 
     bot.say(''.join(response))
 
@@ -516,13 +515,15 @@ def configure_repo_messages(bot, trigger):
     if not result:
         c.execute('''INSERT INTO gh_hooks (channel, repo_name, enabled) VALUES (?, ?, ?)''', (channel, repo_name, enabled))
         bot.say("Successfully enabled listening for {repo}'s events in {chan}.".format(chan=channel, repo=repo_name))
-        bot.say('Great! Please allow me to create my webhook by authorizing via this link: ' + shorten_url(auth_url))
+        bot.say('Great! Please allow me to create my webhook by authorizing via this link:')
+        bot.say(auth_url, max_messages=10)
         bot.say('Once that webhook is successfully created, I\'ll post a message in here. Give me about a minute or so to set it up after you authorize. You can configure the colors that I use to display webhooks with {}gh-hook-color'.format(bot.config.core.help_prefix))
     else:
         c.execute('''UPDATE gh_hooks SET enabled = ? WHERE channel = ? AND repo_name = ?''', (enabled, channel, repo_name))
         bot.say("Successfully {state} the subscription to {repo}'s events".format(state='enabled' if enabled else 'disabled', repo=repo_name))
         if enabled:
-            bot.say('Great! Please allow me to create my webhook by authorizing via this link: ' + shorten_url(auth_url))
+            bot.say('Great! Please allow me to create my webhook by authorizing via this link:')
+            bot.say(auth_url, max_messages=10)
             bot.say('Once that webhook is successfully created, I\'ll post a message in here. Give me about a minute or so to set it up after you authorize. You can configure the colors that I use to display webhooks with {}gh-hook-color'.format(bot.config.core.help_prefix))
     conn.commit()
     conn.close()

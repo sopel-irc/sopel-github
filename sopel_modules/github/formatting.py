@@ -20,8 +20,6 @@ from __future__ import unicode_literals
 import re
 import textwrap
 
-import requests
-
 from sopel.formatting import color
 from sopel import tools
 
@@ -575,15 +573,6 @@ def fmt_release_message(payload=None):
         ' (prerelease)' if payload['release']['prerelease'] else '')
 
 
-def shorten_url(url):
-    try:
-        res = requests.post('https://git.io', {'url': url})
-        return res.headers['location']
-    except:
-        LOGGER.exception('Shortening link failed; using long URL.')
-        return url
-
-
 def get_formatted_response(payload, row):
     global current_row, current_payload
     current_payload = payload
@@ -591,25 +580,25 @@ def get_formatted_response(payload, row):
 
     messages = []
     if payload['event'] == 'push':
-        messages.append(fmt_push_summary_message() + " " + fmt_url(shorten_url(get_push_summary_url())))
+        messages.append(fmt_push_summary_message() + " " + fmt_url(get_push_summary_url()))
         for commit in get_distinct_commits():
             messages.append(fmt_commit_message(commit))
     elif payload['event'] == 'commit_comment':
-        messages.append(fmt_commit_comment_summary() + " " + fmt_url(shorten_url(payload['comment']['html_url'])))
+        messages.append(fmt_commit_comment_summary() + " " + fmt_url(payload['comment']['html_url']))
     elif payload['event'] == 'pull_request':
         if re.match('((re)?open|clos)ed', payload['action']) or payload['action'] in ['ready_for_review', 'converted_to_draft']:
-            messages.append(fmt_pull_request_summary_message() + " " + fmt_url(shorten_url(payload['pull_request']['html_url'])))
+            messages.append(fmt_pull_request_summary_message() + " " + fmt_url(payload['pull_request']['html_url']))
         elif payload['action'] == 'edited':
             if 'changes' in payload:
                 if 'title' in payload['changes']:
-                    messages.append(fmt_pull_request_title_edit() + " " + fmt_url(shorten_url(payload['pull_request']['html_url'])))
+                    messages.append(fmt_pull_request_title_edit() + " " + fmt_url(payload['pull_request']['html_url']))
         elif re.match('(assigned|unassigned)', payload['action']):
-            messages.append(fmt_issue_assignee_message() + " " + fmt_url(shorten_url(payload['pull_request']['html_url'])))
+            messages.append(fmt_issue_assignee_message() + " " + fmt_url(payload['pull_request']['html_url']))
         elif re.match('(labeled|unlabeled)', payload['action']):
             if payload.get('label', None):
                 # If a label is deleted, for example, we'll get a webhook payload with no details about the removed label.
                 # We skip those; there's no reason to emit action messages to IRC with "unknown label" placeholders.
-                messages.append(fmt_issue_label_message() + " " + fmt_url(shorten_url(payload['pull_request']['html_url'])))
+                messages.append(fmt_issue_label_message() + " " + fmt_url(payload['pull_request']['html_url']))
     elif payload['event'] == 'pull_request_review':
         if payload['action'] == 'submitted' and payload['review']['state'] in ['approved', 'changes_requested', 'commented']:
             if payload['review']['state'] == 'commented' and payload['review']['body'] is None:
@@ -618,37 +607,37 @@ def get_formatted_response(payload, row):
                 # Either way, an empty review must be accompanied by comments, which will get handled when their hook(s) fire(s).
                 pass
             else:
-                messages.append(fmt_pull_request_review_summary_message() + " " + fmt_url(shorten_url(payload['review']['html_url'])))
+                messages.append(fmt_pull_request_review_summary_message() + " " + fmt_url(payload['review']['html_url']))
         elif payload['action'] == 'dismissed':
-            messages.append(fmt_pull_request_review_dismissal_message() + " " + fmt_url(shorten_url(payload['review']['html_url'])))
+            messages.append(fmt_pull_request_review_dismissal_message() + " " + fmt_url(payload['review']['html_url']))
     elif payload['event'] == 'pull_request_review_comment' and payload['action'] == 'created':
-        messages.append(fmt_pull_request_review_comment_summary_message() + " " + fmt_url(shorten_url(payload['comment']['html_url'])))
+        messages.append(fmt_pull_request_review_comment_summary_message() + " " + fmt_url(payload['comment']['html_url']))
     elif payload['event'] == 'issues':
         if re.match('((re)?open|clos)ed', payload['action']):
             if 'changes' in payload and all(k in payload['changes'] for k in ['old_repository', 'old_issue']):
-                messages.append(fmt_issue_incoming_transfer_message() + " " + fmt_url(shorten_url(payload['issue']['html_url'])))
+                messages.append(fmt_issue_incoming_transfer_message() + " " + fmt_url(payload['issue']['html_url']))
             else:
-                messages.append(fmt_issue_summary_message() + " " + fmt_url(shorten_url(payload['issue']['html_url'])))
+                messages.append(fmt_issue_summary_message() + " " + fmt_url(payload['issue']['html_url']))
         elif re.match('(assigned|unassigned)', payload['action']):
-            messages.append(fmt_issue_assignee_message() + " " + fmt_url(shorten_url(payload['issue']['html_url'])))
+            messages.append(fmt_issue_assignee_message() + " " + fmt_url(payload['issue']['html_url']))
         elif re.match('(labeled|unlabeled)', payload['action']):
             if payload.get('label', None):
                 # If a label is deleted, for example, we'll get a webhook payload with no details about the removed label.
                 # We skip those; there's no reason to emit action messages to IRC with "unknown label" placeholders.
-                messages.append(fmt_issue_label_message() + " " + fmt_url(shorten_url(payload['issue']['html_url'])))
+                messages.append(fmt_issue_label_message() + " " + fmt_url(payload['issue']['html_url']))
         elif re.match('(milestoned|demilestoned)', payload['action']):
-            messages.append(fmt_issue_milestone_message() + " " + fmt_url(shorten_url(payload['issue']['html_url'])))
+            messages.append(fmt_issue_milestone_message() + " " + fmt_url(payload['issue']['html_url']))
         elif payload['action'] == 'edited':
             if 'changes' in payload:
                 if 'title' in payload['changes']:
-                    messages.append(fmt_issue_title_edit() + " " + fmt_url(shorten_url(payload['issue']['html_url'])))
+                    messages.append(fmt_issue_title_edit() + " " + fmt_url(payload['issue']['html_url']))
         elif payload['action'] == 'transferred':
-            messages.append(fmt_issue_outgoing_transfer_message() + " " + fmt_url(shorten_url(payload['changes']['new_issue']['html_url'])))
+            messages.append(fmt_issue_outgoing_transfer_message() + " " + fmt_url(payload['changes']['new_issue']['html_url']))
     elif payload['event'] == 'issue_comment' and payload['action'] == 'created':
-        messages.append(fmt_issue_comment_summary_message() + " " + fmt_url(shorten_url(payload['comment']['html_url'])))
+        messages.append(fmt_issue_comment_summary_message() + " " + fmt_url(payload['comment']['html_url']))
     elif payload['event'] == 'gollum':
         url = payload['pages'][0]['html_url'] if len(payload['pages']) else payload['repository']['url'] + '/wiki'
-        messages.append(fmt_gollum_summary_message() + " " + fmt_url(shorten_url(url)))
+        messages.append(fmt_gollum_summary_message() + " " + fmt_url(url))
     elif payload['event'] == 'watch':
         messages.append(fmt_watch_message())
     elif payload['event'] == 'status':
@@ -656,6 +645,6 @@ def get_formatted_response(payload, row):
     elif payload['event'] == 'release':
         if payload['action'] == 'published':
             # Currently the only possible action, but other events might eventually fire webhooks too
-            messages.append(fmt_release_message() + " " + fmt_url(shorten_url(payload['release']['html_url'])))
+            messages.append(fmt_release_message() + " " + fmt_url(payload['release']['html_url']))
 
     return messages
