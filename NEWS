@@ -1,3 +1,14 @@
+Changes in 0.4.6
+================
+
+Changed:
+* No longer attempt to shorten links with shut-down git.io (#106)
+
+Fixed:
+* Fix some edge cases in excerpted comment bodies (#105)
+* Clean up some output-formatting code (#107)
+
+
 Changes in 0.4.5
 ================
 
