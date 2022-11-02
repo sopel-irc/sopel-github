@@ -18,6 +18,7 @@ from sopel.formatting import bold, color, monospace
 from sopel.tools.time import get_timezone, format_time
 from sopel.config.types import StaticSection, ValidatedAttribute
 
+from .. import github as github_plugin
 from . import formatting
 from .formatting import emojize
 from .webhook import setup_webhook, shutdown_webhook
@@ -394,7 +395,7 @@ def github_repo(bot, trigger):
 
     if repo.lower() == 'version':
         return bot.say('[GitHub] Version {} by {}, report issues at {}'.format(
-            github.__version__, github.__author__, github.__repo__))
+            github_plugin.__version__, github_plugin.__author__, github_plugin.__repo__))
 
     if repo.lower() == 'status':
         current = json.loads(requests.get('https://status.github.com/api/status.json').text)
