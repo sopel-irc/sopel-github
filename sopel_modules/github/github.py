@@ -12,8 +12,17 @@ Copyright 2019 dgw
 """
 
 from __future__ import unicode_literals
-from sopel import tools
-from sopel.module import OP, NOLIMIT, commands, example, require_chanmsg, rule, url
+
+import base64
+from collections import deque
+import datetime
+import json
+import operator
+import re
+import requests
+import sys
+
+from sopel import plugin, tools
 from sopel.formatting import bold, color, monospace
 from sopel.tools.time import get_timezone, format_time, seconds_to_human
 from sopel.config.types import StaticSection, ValidatedAttribute
@@ -23,21 +32,14 @@ from . import formatting
 from .formatting import emojize
 from .webhook import setup_webhook, shutdown_webhook
 
-import operator
-from collections import deque
 
-import sys
 if sys.version_info.major < 3:
     from urllib import urlencode
     from urllib2 import HTTPError
 else:
     from urllib.parse import urlencode
     from urllib.error import HTTPError
-import json
-import requests
-import re
-import datetime
-import base64
+
 
 '''
  _______           __         __
@@ -103,6 +105,7 @@ def setup(sopel):
 def shutdown(sopel):
     shutdown_webhook(sopel)
 
+
 '''
  _______ ______ _____        ______                    __
 |   |   |   __ |     |_     |   __ |.---.-.----.-----.|__|.-----.-----.
@@ -123,8 +126,8 @@ def fetch_api_endpoint(bot, url):
     return requests.get(url, auth=auth).text
 
 
-@rule(r'.*(?<!\S)/?#(\d+)\b.*')
-@require_chanmsg
+@plugin.rule(r'.*(?<!\S)/?#(\d+)\b.*')
+@plugin.require_chanmsg
 def issue_reference(bot, trigger):
     """
     Separate function to work around Sopel not loading rules/commands for @url callables.
@@ -132,7 +135,7 @@ def issue_reference(bot, trigger):
     issue_info(bot, trigger)
 
 
-@url(issueURL)
+@plugin.url(issueURL)
 def issue_info(bot, trigger, match=None):
     comment_id = None
 
@@ -149,20 +152,20 @@ def issue_info(bot, trigger, match=None):
         repo = bot.db.get_channel_value('github_issue_repo', trigger.sender)
         num = trigger.group(1)
         if not repo:
-            return NOLIMIT
+            return plugin.NOLIMIT
         URL = 'https://api.github.com/repos/%s/issues/%s' % (repo, num)
 
     try:
         raw = fetch_api_endpoint(bot, URL)
     except HTTPError:
         bot.say('[GitHub] API returned an error.')
-        return NOLIMIT
+        return plugin.NOLIMIT
     data = json.loads(raw)
     try:
         body = data['body']
     except (KeyError):
         bot.say('[GitHub] API says this is an invalid issue. Please report this if you know it should work!')
-        return NOLIMIT
+        return plugin.NOLIMIT
 
     body = formatting.fmt_short_comment_body(body)
 
@@ -228,17 +231,17 @@ def issue_info(bot, trigger, match=None):
     bot.say(''.join(response))
 
 
-@commands('gh-repo')
-@example('.gh-repo !clear')
-@example('.gh-repo sopel-irc/sopel-github')
-@require_chanmsg('[GitHub] You can only link a repository to a channel.')
+@plugin.command('gh-repo')
+@plugin.example('.gh-repo !clear')
+@plugin.example('.gh-repo sopel-irc/sopel-github')
+@plugin.require_chanmsg('[GitHub] You can only link a repository to a channel.')
 def manage_channel_repo(bot, trigger):
     """
     Set the repository to use for looking up standalone issue/PR references.
 
     Use the special value ``!clear`` to clear the linked repository.
     """
-    allowed = bot.channels[trigger.sender].privileges.get(trigger.nick, 0) >= OP
+    allowed = bot.channels[trigger.sender].privileges.get(trigger.nick, 0) >= plugin.OP
     if not allowed and not trigger.admin:
         return bot.say('You must be a channel operator to use this command!')
 
@@ -257,7 +260,7 @@ def manage_channel_repo(bot, trigger):
     bot.reply('Set linked repo for %s to %s.' % (trigger.sender, trigger.group(3)))
 
 
-@url(commitURL)
+@plugin.url(commitURL)
 def commit_info(bot, trigger, match=None):
     match = match or trigger
     URL = 'https://api.github.com/repos/%s/commits/%s' % (match.group(1), match.group(2))
@@ -266,7 +269,7 @@ def commit_info(bot, trigger, match=None):
         raw = fetch_api_endpoint(bot, URL)
     except HTTPError:
         bot.say('[GitHub] API returned an error.')
-        return NOLIMIT
+        return plugin.NOLIMIT
     data = json.loads(raw)
     try:
         lines = data['commit']['message'].splitlines()
@@ -278,7 +281,7 @@ def commit_info(bot, trigger, match=None):
             body = ''
     except (KeyError):
         bot.say('[GitHub] API says this is an invalid commit. Please report this if you know it\'s a correct link!')
-        return NOLIMIT
+        return plugin.NOLIMIT
 
     if body.strip() == '':
         body = 'No commit message provided.'
@@ -311,7 +314,7 @@ def commit_info(bot, trigger, match=None):
     bot.say(''.join(response))
 
 
-@url(contentURL)
+@plugin.url(contentURL)
 def file_info(bot, trigger, match=None):
     match = match or trigger
     repo = match.group(1)
@@ -325,12 +328,12 @@ def file_info(bot, trigger, match=None):
         raw = fetch_api_endpoint(bot, URL)
     except HTTPError:
         bot.say('[GitHub] API returned an error.')
-        return NOLIMIT
+        return plugin.NOLIMIT
     data = json.loads(raw)
 
     if data.get('type', 'dir') != 'file':
         # silently ignore directory contents (and malformed responses) for now
-        return NOLIMIT
+        return plugin.NOLIMIT
 
     response = [
         bold('[GitHub]'),
@@ -370,7 +373,7 @@ def get_data(bot, trigger, URL):
         rawLang = fetch_api_endpoint(bot, URL + '/languages')
     except HTTPError:
         bot.say('[GitHub] API returned an error.')
-        return NOLIMIT
+        return plugin.NOLIMIT
     data = json.loads(raw)
     langData = list(json.loads(rawLang).items())
     langData = sorted(langData, key=operator.itemgetter(1), reverse=True)
@@ -399,15 +402,15 @@ def get_data(bot, trigger, URL):
     return data
 
 
-@url(repoURL)
+@plugin.url(repoURL)
 def repo_info(bot, trigger, match=None):
     user, repo = [s.strip() for s in match.group(1).split('/', 1)]
     URL = 'https://api.github.com/repos/%s/%s' % (user, repo)
     fmt_response(bot, trigger, URL, True)
 
 
-@commands('github', 'gh')
-@example('.gh sopel-irc/sopel-github')
+@plugin.command('github', 'gh')
+@plugin.example('.gh sopel-irc/sopel-github')
 def github_repo(bot, trigger):
     repo = trigger.group(3) or None
 
@@ -500,15 +503,15 @@ def fmt_response(bot, trigger, URL, from_regex=False):
     bot.say(''.join(response))
 
 
-@commands('gh-hook')
-@require_chanmsg('[GitHub] GitHub hooks can only be configured in a channel')
-@example('.gh-hook maxpowa/Inumuta enable')
+@plugin.command('gh-hook')
+@plugin.require_chanmsg('[GitHub] GitHub hooks can only be configured in a channel')
+@plugin.example('.gh-hook maxpowa/Inumuta enable')
 def configure_repo_messages(bot, trigger):
     '''
     .gh-hook <repo> [enable|disable] - Enable/disable displaying webhooks from repo in current channel (You must be a channel OP)
     Repo notation is just <user/org>/<repo>, not the whole URL.
     '''
-    allowed = bot.channels[trigger.sender].privileges.get(trigger.nick, 0) >= OP
+    allowed = bot.channels[trigger.sender].privileges.get(trigger.nick, 0) >= plugin.OP
     if not allowed and not trigger.admin:
         return bot.say('You must be a channel operator to use this command!')
 
@@ -551,14 +554,14 @@ def configure_repo_messages(bot, trigger):
     conn.close()
 
 
-@commands('gh-hook-color')
-@require_chanmsg('[GitHub] GitHub hooks can only be configured in a channel')
-@example('.gh-hook-color maxpowa/Inumuta 13 15 6 6 14 2')
+@plugin.command('gh-hook-color')
+@plugin.require_chanmsg('[GitHub] GitHub hooks can only be configured in a channel')
+@plugin.example('.gh-hook-color maxpowa/Inumuta 13 15 6 6 14 2')
 def configure_repo_colors(bot, trigger):
     '''
     .gh-hook-color <repo> <repo color> <name color> <branch color> <tag color> <hash color> <url color> - Set custom colors for the webhook messages (Uses mIRC color indicies)
     '''
-    allowed = bot.channels[trigger.sender].privileges.get(trigger.nick, 0) >= OP
+    allowed = bot.channels[trigger.sender].privileges.get(trigger.nick, 0) >= plugin.OP
     if not allowed and not trigger.admin:
         return bot.say('You must be a channel operator to use this command!')
 
