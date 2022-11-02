@@ -126,7 +126,7 @@ def fetch_api_endpoint(bot, url):
     return requests.get(url, auth=auth).text
 
 
-@plugin.rule(r'.*(?<!\S)/?#(\d+)\b.*')
+@plugin.find(r'(?<!\S)/?#(\d+)\b')
 @plugin.require_chanmsg
 def issue_reference(bot, trigger):
     """
