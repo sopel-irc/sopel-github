@@ -229,18 +229,29 @@ def issue_info(bot, trigger, match=None):
 
 
 @commands('gh-repo')
+@example('.gh-repo !clear')
 @example('.gh-repo sopel-irc/sopel-github')
 @require_chanmsg('[GitHub] You can only link a repository to a channel.')
 def manage_channel_repo(bot, trigger):
     """
     Set the repository to use for looking up standalone issue/PR references.
+
+    Use the special value ``!clear`` to clear the linked repository.
     """
     allowed = bot.channels[trigger.sender].privileges.get(trigger.nick, 0) >= OP
     if not allowed and not trigger.admin:
         return bot.say('You must be a channel operator to use this command!')
 
     if not trigger.group(2):
-        return bot.say(bot.db.get_channel_value('github_issue_repo', trigger.sender))
+        msg = 'No repo linked to this channel.'
+        current = bot.db.get_channel_value('github_issue_repo', trigger.sender)
+        if current:
+            msg = 'Issue numbers in %s will fetch data for %s.' % (trigger.sender, current)
+        return bot.say(msg)
+
+    if trigger.group(3).lower() == '!clear':
+        bot.db.delete_channel_value('github_issue_repo', trigger.sender)
+        return bot.say('Cleared linked repo for %s.' % trigger.sender)
 
     bot.db.set_channel_value('github_issue_repo', trigger.sender, trigger.group(3))
     bot.reply('Set linked repo for %s to %s.' % (trigger.sender, trigger.group(3)))
