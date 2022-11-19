@@ -15,7 +15,7 @@ from __future__ import unicode_literals
 from sopel import tools
 from sopel.module import OP, NOLIMIT, commands, example, require_chanmsg, rule, url
 from sopel.formatting import bold, color, monospace
-from sopel.tools.time import get_timezone, format_time
+from sopel.tools.time import get_timezone, format_time, seconds_to_human
 from sopel.config.types import StaticSection, ValidatedAttribute
 
 from .. import github as github_plugin
@@ -283,6 +283,10 @@ def commit_info(bot, trigger, match=None):
     if body.strip() == '':
         body = 'No commit message provided.'
 
+    now = datetime.datetime.utcnow()  # can't use trigger.time until it becomes Aware in Sopel 8
+    author_date = from_utc(data['commit']['author']['date'])
+    committer_date = from_utc(data['commit']['committer']['date'])
+
     change_count = data['stats']['total']
     file_count = len(data['files'])
     response = [
@@ -298,7 +302,11 @@ def commit_info(bot, trigger, match=None):
         ' change' if change_count == 1 else ' changes',
         ' in ',
         str(file_count),
-        ' file' if file_count == 1 else ' files'
+        ' file' if file_count == 1 else ' files',
+        bold(' | '),
+        'Authored ' + seconds_to_human((now - author_date).total_seconds()),
+        bold(' | '),
+        'Committed ' + seconds_to_human((now - committer_date).total_seconds()),
     ]
     bot.say(''.join(response))
 
