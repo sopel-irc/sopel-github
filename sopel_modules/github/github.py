@@ -59,7 +59,7 @@ githubUsername = (
 githubRepoSlug = r'[A-Za-z0-9\.\-_]+'
 # lots of regex and other globals to make this stuff work
 baseURL = r'https?://(?:www\.)?github\.com/({username}/{repo})'.format(username=githubUsername, repo=githubRepoSlug)
-repoURL = baseURL + r'/?(?!\S)'
+repoURL = baseURL + r'/?(?:#.*|(?!\S))'
 issueURL = baseURL + r'/(?:issues|pull)/([\d]+)(?:#issuecomment-([\d]+))?'
 commitURL = baseURL + r'/(?:commit)/([A-z0-9\-]+)'
 contentURL = baseURL + r'/(?:blob|raw)/([^/\s]+)/([^#\s]+)(?:#L(\d+)(?:-L(\d+))?)?'
