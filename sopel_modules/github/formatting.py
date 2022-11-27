@@ -35,6 +35,8 @@ current_payload = None
 
 LOGGER = tools.get_logger('github')
 
+MARKDOWN_HEADING = re.compile(r'#+\s+')
+
 
 def fmt_url(s, row=None):
     if not row:
@@ -81,7 +83,7 @@ def fmt_short_comment_body(body):
         for line in body.splitlines()
         if line
         and line[0] != '>'  # Markdown quote
-        and not line.startswith('#')  # Markdown heading
+        and not MARKDOWN_HEADING.match(line)  # Markdown heading
         and not line.startswith('<!-')  # commented out HTML-style
     ]
     # if there's nothing left, the comment is "empty"
