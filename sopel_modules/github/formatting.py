@@ -116,18 +116,13 @@ def get_distinct_commits(payload=None):
 def get_ref_name(payload=None):
     if not payload:
         payload = current_payload
-
-    if 'ref_name' in payload:
-        return payload['ref_name']
-
-    payload['ref_name'] = re.sub(r'^refs/(heads|tags)/', '', payload['ref'])
-    return payload['ref_name']
+    return re.sub(r'^refs/(heads|tags)/', '', payload['ref'])
 
 
 def get_base_ref_name(payload=None):
     if not payload:
         payload = current_payload
-    return re.sub(r'^refs/(heads|tags)/', '', payload['base_ref_name'])
+    return re.sub(r'^refs/(heads|tags)/', '', payload['base_ref'])
 
 
 def get_pusher(payload=None):
