@@ -27,8 +27,12 @@ from .formatting import fmt_name
 
 from threading import Thread
 import bottle
+import hashlib
+import hmac
 import json
 import requests
+
+LOGGER = tools.get_logger('github')
 
 # Because I'm a horrible person
 sopel_instance = None
@@ -125,13 +129,75 @@ def process_payload(payload, targets):
             sopel_instance.say(message, row[0])
 
 
+def debug_log_request(request_headers, request_body):
+    LOGGER.debug('Headers: {}'.format(dict([(k, request_headers[k]) for k in request_headers])))
+    LOGGER.debug('Request: {}'.format(request_body.decode('utf-8')))
+
+
+def abort_request(status_code=400, response_message=None):
+    if sopel_instance.config.github.debug_mode:
+        LOGGER.warning('`debug_mode = True`; allowing unverified request...')
+        return None
+    return bottle.abort(status_code, response_message)
+
+
+def verify_request():
+    request_headers = bottle.request.headers
+    request_body = bottle.request.body.read()
+
+    if not request_headers.get('X-Hub-Signature-256'):
+        msg = 'Request is missing a hash signature.'
+        LOGGER.error(msg)
+        debug_log_request(request_headers, request_body)
+        return abort_request(401, msg)  # 401 Unauthorized; missing required header
+
+    digest_name, payload_signature = request_headers.get('X-Hub-Signature-256').split('=')
+    # Currently, GitHub provides 'sha256' in the 'X-Hub-Signature-256' header;
+    # log a warning if a different digest is specified.
+    # GitHub may have started using a new digest.
+    if digest_name != 'sha256':
+        LOGGER.warning('Unexpected signature digest: {}'.format(digest_name))
+        debug_log_request(request_headers, request_body)
+
+    try:
+        digest_mod = getattr(hashlib, digest_name)
+    except AttributeError:
+        # The previous digest check does not require a 'sha256' digest, but simply
+        # warns when an unexpected digest is specified. The function will
+        # attempt to find the digest specified in the signature, but if it is
+        # not currently supported by Python's `hashlib`, an error will be logged
+        # and returned.
+        msg = 'Unsupported signature digest: {}'.format(digest_name)
+        LOGGER.error(msg)
+        debug_log_request(request_headers, request_body)
+        return abort_request(501, msg)  # 501 Not Implemented; server does not support the functionality required to fulfill the request
+
+    secret = sopel_instance.config.github.webhook_secret
+    hash_ = hmac.new(secret.encode('utf-8') if secret else None, msg=request_body, digestmod=digest_mod)
+    expected_signature = hash_.hexdigest()
+    if not hmac.compare_digest(payload_signature, expected_signature):
+        msg = 'Request signature mismatch.'
+        LOGGER.error(msg)
+        debug_log_request(request_headers, request_body)
+        return abort_request(403, msg)  # 403 Forbidden; server understood the request but refuses to authorize it
+
+
 @bottle.get("/webhook")
 def show_hook_info():
-    return 'Listening for webhook connections!'
+    if sopel_instance.config.github.debug_mode:
+        return 'Listening for webhook connections!'
+    # bottle.abort() == raise HTTPError(); manually raising HTTPError allows passing extra headers
+    raise bottle.HTTPError(405, Allow='POST')  # 405 Method Not Allowed; this route is only useful for testing.
 
 
 @bottle.post("/webhook")
 def webhook():
+    if sopel_instance.config.github.webhook_secret:
+        verify_request()  # function will automatically abort this webhook if verification fails
+        # If you made it here, then validation was successful.
+
+    event = bottle.request.headers.get('X-GitHub-Event') or 'ping'
+
     try:
         payload = bottle.request.json
     except:
@@ -181,6 +247,9 @@ def handle_auth_response():
                 "content_type": "json"
             }
         }
+
+        if sopel_instance.config.github.webhook_secret:
+            data['config']['secret'] = sopel_instance.config.github.webhook_secret
 
         raw = requests.post('https://api.github.com/repos/{}/hooks?access_token={}'.format(repo, access_token), data=json.dumps(data))
         res = json.loads(raw.text)

@@ -73,6 +73,10 @@ class GitHubSection(StaticSection):
     webhook_host = ValidatedAttribute('webhook_host', default='0.0.0.0')
     webhook_port = ValidatedAttribute('webhook_port', default='3333')
     external_url = ValidatedAttribute('external_url', default='http://your_ip_or_domain_here:3333')
+    webhook_secret = ValidatedAttribute('webhook_secret', default=None)
+    """Secret token to be used to by GitHub and bot for hashing payload"""
+    debug_mode = ValidatedAttribute('debug_mode', bool, default=False)
+    """Allow unverified requests for testing purposes"""
 
 
 def configure(config):
