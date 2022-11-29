@@ -1,3 +1,21 @@
+Changes in 0.4.7
+================
+
+Added:
+* Special `.gh-repo !clear` syntax to delete a channel's linked repo (#112)
+* Output relative committer & author date for commit URLs (#114)
+
+Changed:
+* Prettified `.gh-repo` output (#112)
+
+Fixed:
+* `NameError` in `.gh version` subcommand ( #111)
+* `TypeError` in `.gh-repo` in channel with no linked repository (#112)
+* Incorrect plural "1 changes" in commit output (#113)
+* Reduced false-positive Markdown heading detection (#115)
+* Ignore URI fragments in repo links (#116)
+
+
 Changes in 0.4.6
 ================
 
