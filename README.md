@@ -47,6 +47,10 @@ the user. For example:
 If you have [the `emoji` package](https://pypi.org/project/emoji/) installed,
 most `:emoji_name:`s will be converted to Unicode emoji in the output. (GitHub
 supports some non-standard names that this plugin doesn't handle yet.)
+This feature requires emoji >= 1.7, but >= 2.0 is recommended:
+```
+pip install 'emoji>=2.0'
+```
 
 
 ### API Keys & Usage
