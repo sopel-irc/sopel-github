@@ -28,7 +28,7 @@ try:
 except ImportError:
     emojize = lambda text: text
 else:
-    emojize = lambda text: emoji.emojize(text, use_aliases=True)
+    emojize = lambda text: emoji.emojize(text, language='alias')
 
 current_row = None
 current_payload = None
