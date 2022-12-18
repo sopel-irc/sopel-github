@@ -1,3 +1,17 @@
+Changes in 0.4.8
+================
+
+Changed:
+* Use `emoji` 2.0 API style (#119)
+  * If you installed the `emoji` package and its version is <1.7.0, you will
+    need to `pip install --upgrade emoji`.
+  * A future version of sopel-github will make this optional dependency easier
+    to manage with a setuptools extra.
+
+Fixed:
+* Wrong webhook payload attributes used in push handler (#117)
+
+
 Changes in 0.4.7
 ================
 
