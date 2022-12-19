@@ -41,6 +41,9 @@ setup(
     include_package_data=True,
     install_requires=requirements,
     tests_require=dev_requirements,
+    extras_require={
+        'emoji': ['emoji>=1.7,<3'],
+    },
     test_suite='tests',
     license='Eiffel Forum License, version 2',
 )
