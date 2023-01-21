@@ -14,6 +14,18 @@ cd sopel-github
 pip install .
 ```
 
+### Optional features
+
+References to `:named_emoji:` in titles & comments can be converted to Unicode
+in the output. If you want this feature, install the plugin's `emoji` extra:
+
+```sh
+pip install sopel_modules.github[emoji]
+```
+
+***Note:** GitHub also supports some non-standard names such as `:shipit:` that
+don't have a Unicode equivalent.*
+
 ## Out-of-the-box Functionality
 
 Detects when GitHub URLs are posted and takes over URL handling of them, pretty
@@ -43,15 +55,6 @@ the user. For example:
         | Watchers: 1 | Forks: 8 | Network: 8 | Open Issues: 18 |
         https://github.com/sopel-irc/sopel-github
 ```
-
-If you have [the `emoji` package](https://pypi.org/project/emoji/) installed,
-most `:emoji_name:`s will be converted to Unicode emoji in the output. (GitHub
-supports some non-standard names that this plugin doesn't handle yet.)
-This feature requires emoji >= 1.7, but >= 2.0 is recommended:
-```
-pip install 'emoji>=2.0'
-```
-
 
 ### API Keys & Usage
 
@@ -141,7 +144,6 @@ After you've authorized the webhook creation, you will be redirected to a
 simple page informing you that the bot succeeded/failed creating your hook.
 Assuming it succeeded, you should see a generic message appear in the channel
 you activated it in.
-
 
 ### Customizing hooks
 
