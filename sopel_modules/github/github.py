@@ -53,18 +53,25 @@ else:
 # Regex copied and slightly modified to meet our needs from CC0 source:
 # https://github.com/shinnn/github-username-regex/blob/0794566cc10e8c5a0e562823f8f8e99fa044e5f4/module.js#L1
 githubUsername = (
-    r'(?!(?:collections|events|sponsors|topics|trending)/)'  # exclude special sections
     r'[A-Za-z\d](?:[A-Za-z\d]|-(?=[A-Za-z\d])){0,38}'
+)
+githubSpecialPaths = (
+    r'(?!(?:collections|events|sponsors|topics|trending)/)'  # exclude special sections
 )
 # GitHub additionally allows dots ('.') in repo names, as well as hyphens
 # not copied from anywhere, but handy to simply reuse
 githubRepoSlug = r'[A-Za-z0-9\.\-_]+'
 # lots of regex and other globals to make this stuff work
-baseURL = r'https?://(?:www\.)?github\.com/({username}/{repo})'.format(username=githubUsername, repo=githubRepoSlug)
+baseURL = (
+    r'https?://(?:www\.)?github\.com/(?P<user>{username})/(?P<repo>{repo})'.format(
+        username=(githubSpecialPaths + githubUsername),
+        repo=githubRepoSlug
+    )
+)
 repoURL = baseURL + r'/?(?:#.*|(?!\S))'
-issueURL = baseURL + r'/(?:issues|pull)/([\d]+)(?:#issuecomment-([\d]+))?'
-commitURL = baseURL + r'/(?:commit)/([A-z0-9\-]+)'
-contentURL = baseURL + r'/(?:blob|raw)/([^/\s]+)/([^#\s]+)(?:#L(\d+)(?:-L(\d+))?)?'
+issueURL = baseURL + r'/(?:issues|pull)/(?P<num>[\d]+)(?:#issuecomment-(?P<eventID>[\d]+))?'
+commitURL = baseURL + r'/(?:commit)/(?P<commit>[A-z0-9\-]+)'
+contentURL = baseURL + r'/(?:blob|raw)/(?P<ref>[^/\s]+)/(?P<path>[^#\s]+)(?:#L(?P<start>\d+)(?:-L(?P<end>\d+))?)?'
 
 
 class GitHubSection(StaticSection):
@@ -126,7 +133,10 @@ def fetch_api_endpoint(bot, url):
     return requests.get(url, auth=auth).text
 
 
-@plugin.find(r'(?<!\S)/?#(\d+)\b')
+@plugin.find(
+    r'(?<!\S)(?:\b(?:(?P<user>{match_user})\/)?(?P<repo>{match_repo}))?#(?P<num>\d+)\b'
+    .format(match_user=githubUsername, match_repo=githubRepoSlug)
+)
 @plugin.require_chanmsg
 def issue_reference(bot, trigger):
     """
@@ -137,23 +147,36 @@ def issue_reference(bot, trigger):
 
 @plugin.url(issueURL)
 def issue_info(bot, trigger, match=None):
+    user = trigger.group('user')
+    repo = trigger.group('repo')
+    num = trigger.group('num')
     comment_id = None
 
     if match:  # Link triggered
-        repo = match.group(1)
-        num = match.group(2)
-        comment_id = match.group(3)
-
+        try:
+            comment_id = match.group('eventID')
+        except IndexError:
+            # meh
+            pass
         if comment_id:
-            URL = 'https://api.github.com/repos/%s/issues/comments/%s' % (repo, comment_id)
+            URL = 'https://api.github.com/repos/%s/%s/issues/comments/%s' % (user, repo, comment_id)
         else:
-            URL = 'https://api.github.com/repos/%s/issues/%s' % (repo, num)
+            URL = 'https://api.github.com/repos/%s/%s/issues/%s' % (user, repo, num)
     else:  # Issue/PR number triggered
-        repo = bot.db.get_channel_value('github_issue_repo', trigger.sender)
-        num = trigger.group(1)
-        if not repo:
+        channel_repo = bot.db.get_channel_value('github_issue_repo', trigger.sender)
+
+        if not all((user, repo)) and not channel_repo:
+            # If at least the user slug is missing, and there's no repo linked to the channel,
+            # it's impossible to fill in the blank(s).
             return plugin.NOLIMIT
-        URL = 'https://api.github.com/repos/%s/issues/%s' % (repo, num)
+
+        # By this point we are sure to have a channel repo set; start filling blanks.
+        if user is None and repo is None:
+            user, repo = channel_repo.split('/', 1)
+        elif repo and not user:
+            user, _ = channel_repo.split('/', 1)
+
+        URL = 'https://api.github.com/repos/%s/%s/issues/%s' % (user, repo, num)
 
     try:
         raw = fetch_api_endpoint(bot, URL)
@@ -173,7 +196,7 @@ def issue_info(bot, trigger, match=None):
     response = [
         bold('[GitHub]'),
         ' [',
-        repo,
+        '%s/%s' % (user, repo),
         ' #',
         num,
         '] ',
@@ -263,7 +286,8 @@ def manage_channel_repo(bot, trigger):
 @plugin.url(commitURL)
 def commit_info(bot, trigger, match=None):
     match = match or trigger
-    URL = 'https://api.github.com/repos/%s/commits/%s' % (match.group(1), match.group(2))
+    repo = '%s/%s' % (match.group('user'), match.group('repo'))
+    URL = 'https://api.github.com/repos/%s/commits/%s' % (repo, match.group('commit'))
 
     try:
         raw = fetch_api_endpoint(bot, URL)
@@ -295,7 +319,7 @@ def commit_info(bot, trigger, match=None):
     response = [
         bold('[GitHub]'),
         ' [',
-        match.group(1),
+        repo,
         '] ',
         data['author']['login'] if data['author'] else data['commit']['author']['name'],
         ': ',
@@ -317,11 +341,12 @@ def commit_info(bot, trigger, match=None):
 @plugin.url(contentURL)
 def file_info(bot, trigger, match=None):
     match = match or trigger
-    repo = match.group(1)
-    path = match.group(3)
-    ref = match.group(2)
-    start_line = match.group(4)
-    end_line = match.group(5)
+    repo = '%s/%s' % (match.group('user'), match.group('repo'))
+    path = match.group('path')
+    ref = match.group('ref')
+    start_line = match.group('start')
+    end_line = match.group('end')
+
     URL = 'https://api.github.com/repos/%s/contents/%s?ref=%s' % (repo, path, ref)
 
     try:
@@ -404,8 +429,7 @@ def get_data(bot, trigger, URL):
 
 @plugin.url(repoURL)
 def repo_info(bot, trigger, match=None):
-    user, repo = [s.strip() for s in match.group(1).split('/', 1)]
-    URL = 'https://api.github.com/repos/%s/%s' % (user, repo)
+    URL = 'https://api.github.com/repos/%s/%s' % (match.group('user'), match.group('repo'))
     fmt_response(bot, trigger, URL, True)
 
 
