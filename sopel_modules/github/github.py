@@ -123,7 +123,7 @@ def fetch_api_endpoint(bot, url):
     auth = None
     if bot.config.github.client_id and bot.config.github.client_secret:
         auth = (bot.config.github.client_id, bot.config.github.client_secret)
-    return requests.get(url, auth=auth).text
+    return requests.get(url, headers={'X-GitHub-Api-Version': '2022-11-28'}, auth=auth).text
 
 
 @plugin.find(r'(?<!\S)/?#(\d+)\b')
