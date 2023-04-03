@@ -134,7 +134,7 @@ def fetch_api_endpoint(bot, url):
 
 
 @plugin.find(
-    r'(?<!\S)(?:\b(?:(?P<user>{match_user})\/)?(?P<repo>{match_repo}))?#(?P<num>\d+)\b'
+    r'(?<![\w\/\.])(?:\b(?:(?P<user>{match_user})\/)?(?P<repo>{match_repo}))?(?<![\/\.])#(?P<num>\d+)\b'
     .format(match_user=githubUsername, match_repo=githubRepoSlug)
 )
 @plugin.require_chanmsg
