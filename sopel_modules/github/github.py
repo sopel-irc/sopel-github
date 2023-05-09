@@ -220,7 +220,9 @@ def issue_info(bot, trigger, match=None):
     response.extend([
         ' by ',
         data['user']['login'],
-        ': '
+        ', ',
+        format_time(bot.db, bot.config, None, None, trigger.sender, from_utc(data['created_at'])),
+        ': ',
     ])
 
     if ('title' in data):
