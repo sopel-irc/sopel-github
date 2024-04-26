@@ -15,6 +15,7 @@ from __future__ import unicode_literals
 
 import base64
 from collections import deque
+from collections.abc import Mapping
 import datetime
 import json
 import operator
@@ -339,8 +340,8 @@ def file_info(bot, trigger, match=None):
         return plugin.NOLIMIT
     data = json.loads(raw)
 
-    if data.get('type', 'dir') != 'file':
-        # silently ignore directory contents (and malformed responses) for now
+    if not isinstance(data, Mapping) or data.get('type', 'fakenews') != 'file':
+        # silently ignore directory contents (and unexpected responses) for now
         return plugin.NOLIMIT
 
     response = [
