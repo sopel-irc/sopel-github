@@ -217,11 +217,13 @@ def issue_info(bot, trigger, match=None):
         ])
 
     # reunited once again; the rest of the output format is common
+    now = datetime.datetime.utcnow()  # can't use trigger.time until it becomes Aware in Sopel 8
+    created_at = from_utc(data['created_at'])
     response.extend([
         ' by ',
         data['user']['login'],
-        ', ',
-        format_time(bot.db, bot.config, None, None, trigger.sender, from_utc(data['created_at'])),
+        ', created ',
+        seconds_to_human((now - created_at).total_seconds()),
         ': ',
     ])
 
