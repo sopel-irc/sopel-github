@@ -81,6 +81,7 @@ class GitHubSection(StaticSection):
     webhook_host = ValidatedAttribute('webhook_host', default='0.0.0.0')
     webhook_port = ValidatedAttribute('webhook_port', default='3333')
     external_url = ValidatedAttribute('external_url', default='http://your_ip_or_domain_here:3333')
+    shortest_bare_number = ValidatedAttribute('shortest_bare_number', int, default=2)
 
 
 def configure(config):
@@ -162,7 +163,11 @@ def issue_info(bot, trigger, match=None):
             # it's impossible to fill in the blank(s).
             return plugin.NOLIMIT
 
-        # By this point we are sure to have a channel repo set; start filling blanks.
+        # We do have a channel repo, but bare #numbers that are too short should be ignored.
+        if user is None and repo is None and len(num) < bot.config.github.shortest_bare_number:
+            return plugin.NOLIMIT
+
+        # All sanity checks done; start filling blanks.
         if user is None and repo is None:
             user, repo = channel_repo.split('/', 1)
         elif repo and not user:

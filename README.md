@@ -56,6 +56,18 @@ the user. For example:
         https://github.com/sopel-irc/sopel-github
 ```
 
+### Nuisance reduction
+
+This plugin looks for bare references to issues/PRs the same way GitHub does in
+comments. If the current channel is associated with a repo, the minimum valid
+reference is e.g. `#1`, which is often unhelpful. Anecdotally, chat users talk
+about their number-one (or two, or three) favorite _something_ much more often
+than they reference the project's very oldest issues.
+
+For this reason, `sopel-github` ignores any single-digit bare references by
+default. Your installation can use the `shortest_bare_number` setting in the
+`[github]` config section to set a different minimum length.
+
 ### API Keys & Usage
 
 GitHub's API has some fairly lenient unauthorized request limits, but you may
