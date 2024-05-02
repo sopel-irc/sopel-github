@@ -134,11 +134,11 @@ def issue_reference(bot, trigger):
     """
     Separate function to work around Sopel not loading rules/commands for @url callables.
     """
-    issue_info(bot, trigger)
+    issue_info(bot, trigger, suppress_errors=True)
 
 
 @plugin.url(issueURL)
-def issue_info(bot, trigger, match=None):
+def issue_info(bot, trigger, match=None, suppress_errors=False):
     user = trigger.group('user')
     repo = trigger.group('repo')
     num = trigger.group('num')
@@ -179,7 +179,8 @@ def issue_info(bot, trigger, match=None):
     try:
         body = data['body']
     except (KeyError):
-        bot.say('[GitHub] API says this is an invalid issue. Please report this if you know it should work!')
+        if not suppress_errors:
+            bot.say('[GitHub] API says this is an invalid issue. Please report this if you know it should work!')
         return plugin.NOLIMIT
 
     body = formatting.fmt_short_comment_body(body)
