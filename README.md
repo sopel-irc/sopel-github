@@ -1,11 +1,11 @@
-# Sopel GitHub
+# sopel-github
 
 GitHub plugin for [Sopel](https://sopel.chat/) IRC bots.
 
 
 ## Installation
 
-The easy (and recommended) way: `pip install sopel_modules.github`
+The easy (and recommended) way: `pip install sopel-github`
 
 The less-easy way; you must already have Sopel installed to use this method.
 ```

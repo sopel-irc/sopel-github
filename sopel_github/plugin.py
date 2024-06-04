@@ -1,6 +1,6 @@
-# coding=utf8
 """
-github.py - Sopel GitHub Module
+Sopel GitHub Plugin
+
 Copyright 2015 Max Gurela
 Copyright 2019 dgw
 
@@ -11,7 +11,7 @@ Copyright 2019 dgw
 
 """
 
-from __future__ import unicode_literals
+from __future__ import annotations
 
 import base64
 from collections import deque
@@ -26,9 +26,8 @@ import sys
 from sopel import plugin, tools
 from sopel.formatting import bold, color, monospace
 from sopel.tools.time import get_timezone, format_time, seconds_to_human
-from sopel.config.types import StaticSection, ValidatedAttribute
+from sopel.config.types import BooleanAttribute, StaticSection, ValidatedAttribute
 
-from .. import github as github_plugin
 from . import formatting
 from .formatting import emojize
 from .webhook import setup_webhook, shutdown_webhook
@@ -78,7 +77,7 @@ contentURL = baseURL + r'/(?:blob|raw)/(?P<ref>[^/\s]+)/(?P<path>[^#\s]+)(?:#L(?
 class GitHubSection(StaticSection):
     client_id = ValidatedAttribute('client_id', default=None)
     client_secret = ValidatedAttribute('client_secret', default=None)
-    webhook = ValidatedAttribute('webhook', bool, default=False)
+    webhook = BooleanAttribute('webhook', default=False)
     webhook_host = ValidatedAttribute('webhook_host', default='0.0.0.0')
     webhook_port = ValidatedAttribute('webhook_port', default='3333')
     external_url = ValidatedAttribute('external_url', default='http://your_ip_or_domain_here:3333')
@@ -436,35 +435,23 @@ def github_repo(bot, trigger):
         return bot.reply('I need a repository name, or `user/reponame`.')
 
     if repo.lower() == 'version':
-        return bot.say('[GitHub] Version {} by {}, report issues at {}'.format(
-            github_plugin.__version__, github_plugin.__author__, github_plugin.__repo__))
+        pfx = bot.settings.core.help_prefix
+        msg = "Sorry, the `{pfx}gh version` command is deprecated. "
+
+        if bot.has_plugin('version'):
+            msg += "Try `{pfx}version github` instead!"
+        else:
+            msg += "Ask my owner about the `version` plugin!"
+
+        bot.reply(msg.format(pfx=pfx))
+        return plugin.NOLIMIT
 
     if repo.lower() == 'status':
-        current = json.loads(requests.get('https://status.github.com/api/status.json').text)
-        lastcomm = json.loads(requests.get('https://status.github.com/api/last-message.json').text)
-
-        status = current['status']
-        if status == 'major':
-            status = "\x02\x034Broken\x03\x02"
-        elif status == 'minor':
-            status = "\x02\x037Shakey\x03\x02"
-        elif status == 'good':
-            status = "\x02\x033Online\x03\x02"
-
-        lstatus = lastcomm['status']
-        if lstatus == 'major':
-            lstatus = "\x02\x034Broken\x03\x02"
-        elif lstatus == 'minor':
-            lstatus = "\x02\x037Shakey\x03\x02"
-        elif lstatus == 'good':
-            lstatus = "\x02\x033Online\x03\x02"
-
-        timezone = get_timezone(bot.db, bot.config, None, trigger.nick)
-        if not timezone:
-            timezone = 'UTC'
-        lastcomm['created_on'] = format_time(bot.db, bot.config, timezone, trigger.nick, trigger.sender, from_utc(lastcomm['created_on']))
-
-        return bot.say('[GitHub] Current Status: ' + status + ' | Last Message: ' + lstatus + ': ' + lastcomm['body'] + ' (' + lastcomm['created_on'] + ')')
+        # This was previously more complex, but broke sometime before June 2024.
+        # It could be re-improved using other API endpoints documented here:
+        # https://www.githubstatus.com/api
+        current = json.loads(requests.get('https://www.githubstatus.com/api/v2/status.json').text)
+        return bot.say('[GitHub] Current Status: ' + current['status']['description'])
     elif repo.lower() == 'rate-limit':
         return bot.say(fetch_api_endpoint(bot, 'https://api.github.com/rate_limit'))
 

@@ -1,6 +1,6 @@
-# coding=utf8
 """
-webhook.py - Sopel GitHub Module
+webhook.py - Part of Sopel GitHub Plugin
+
 Copyright 2015 Max Gurela
 Copyright 2019 dgw
 
@@ -15,7 +15,7 @@ Copyright 2019 dgw
 
 """
 
-from __future__ import unicode_literals
+from __future__ import annotations
 
 from sopel import tools
 from sopel.formatting import bold, color

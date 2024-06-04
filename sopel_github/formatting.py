@@ -1,6 +1,6 @@
-# coding=utf-8
 """
-formatting.py - Sopel GitHub Module
+formatting.py - Part of Sopel GitHub Plugin
+
 Copyright 2015 Max Gurela
 Copyright 2019 dgw
 
@@ -15,7 +15,7 @@ Copyright 2019 dgw
                                                         |_____|
 """
 
-from __future__ import unicode_literals
+from __future__ import annotations
 
 import re
 import textwrap
