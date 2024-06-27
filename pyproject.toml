@@ -1,0 +1,60 @@
+[build-system]
+requires = ["setuptools>=63.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+platforms = ["Linux x86, x86-64"]
+
+[tool.setuptools.packages.find]
+include = ["sopel_github", "sopel_github.*"]
+namespaces = false
+
+[tool.setuptools.dynamic]
+readme = { file=["README.md", "NEWS"], content-type="text/markdown" }
+
+[project]
+name = "sopel-github"
+version = "0.5.0.dev0"
+description = "GitHub plugin for Sopel"
+
+authors = [
+  { name="Max Gurela", email="maxpowa@outlook.com" }
+]
+maintainers = [
+  { name="dgw", email="dgw@technobabbl.es" },
+]
+
+license = { text="EFL-2.0" }
+dynamic = ["readme"]
+
+classifiers = [
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "License :: Eiffel Forum License (EFL)",
+    "License :: OSI Approved :: Eiffel Forum License",
+    "Topic :: Communications :: Chat :: Internet Relay Chat",
+]
+keywords = [
+  "sopel",
+  "plugin",
+  "bot",
+  "irc",
+]
+
+requires-python = ">=3.8, <4"
+dependencies = [
+    "sopel>=8",
+    "bottle~=0.12.0",
+]
+
+[project.optional-dependencies]
+emoji = [
+  "emoji>=1.7,<3",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/sopel-irc/sopel-github"
+"Bug Tracker" = "https://github.com/sopel-irc/sopel-github/issues"
+
+[project.entry-points."sopel.plugins"]
+"github" = "sopel_github.plugin"

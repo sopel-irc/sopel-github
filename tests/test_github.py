@@ -1,10 +1,8 @@
-#!/usr/bin/env python
-# coding=utf-8
-from __future__ import unicode_literals, absolute_import, division, print_function
+from __future__ import annotations
 
 import unittest
 
-from sopel_modules.github import github
+from sopel_github import plugin
 
 class TestGithub(unittest.TestCase):
     def setUp(self):
