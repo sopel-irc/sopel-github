@@ -5,26 +5,34 @@ GitHub plugin for [Sopel](https://sopel.chat/) IRC bots.
 
 ## Installation
 
-The easy (and recommended) way: `pip install sopel-github`
+`sopel-github` is hosted on PyPI, and all you need to install it is `pip`:
 
-The less-easy way; you must already have Sopel installed to use this method.
-```
-git clone https://github.com/sopel-irc/sopel-github
-cd sopel-github
-pip install .
+```sh
+pip install sopel-github
 ```
 
-### Optional features
+### Requirements
+
+`sopel-github` requires Sopel 8.0+ running on Python 3.8 or higher.
+
+If you need to use this plugin on an older version of Sopel, [the older
+`sopel_modules.github` package][namespace-package] might work, but it is no
+longer updated.
+
+[namespace-package]: https://pypi.org/project/sopel_modules.github/
+
+#### Optional features
 
 References to `:named_emoji:` in titles & comments can be converted to Unicode
 in the output. If you want this feature, install the plugin's `emoji` extra:
 
 ```sh
-pip install sopel_modules.github[emoji]
+pip install sopel-github[emoji]
 ```
 
-***Note:** GitHub also supports some non-standard names such as `:shipit:` that
-don't have a Unicode equivalent.*
+_**Note:** GitHub also supports some non-standard emoji names such as `:shipit:`
+that don't have a Unicode equivalent, so you might still see some
+`:named_emoji:` in the plugin's output._
 
 ## Out-of-the-box Functionality
 
@@ -77,14 +85,14 @@ keys for yourself. Fill out the information at
 https://github.com/settings/applications/new and then populate your
 configuration with your newly generated client key and secret.
 
-__IF YOU PLAN ON USING WEBHOOK FUNCTIONALITY:__ You _must_ properly fill out
+**IF YOU PLAN ON USING WEBHOOK FUNCTIONALITY:** You _must_ properly fill out
 the "Authorization callback URL" to match the external URL you plan to use for
 the webhook.
 
 
 ## Webhook Functionality
 
-Webhook functionality is __disabled__ by default. It requires slightly more
+Webhook functionality is **disabled** by default. It requires slightly more
 technical knowledge and configuration may vary depending on your system.
 
 ### Configuring Webhooks
@@ -94,7 +102,7 @@ to the web.
 
 #### Configuring behind a proxy
 
-This is the __recommended__ way of configuring the webhook functionality, as
+This is the **recommended** way of configuring the webhook functionality, as
 there may be security flaws in the other method.
 
 First, configure the GitHub module. You may do so by running `sopel
@@ -138,8 +146,8 @@ As an OP+ in a channel, you may type `.gh-hook user/repo`. You will see some
 informational text on what you need to do to finalize the hook, including a
 link to click to authorize the creation of the webhook. You will be required
 to authorize the GitHub application to read/write your webhooks (see
-[L163-164](https://github.com/sopel-irc/sopel-github/blob/9afaf1e51d9c28a1bbba7b442f6e7dea7db74018/sopel_modules/github/webhook.py#L163-L164))
-but this should be the _only_ permissions we need.
+[L170-171](https://github.com/sopel-irc/sopel-github/blob/a60b2dd2dbfc0f82926e33f00a8b0e8cc1facfb5/sopel_github/webhook.py#L170-L171))
+but this should be the _only_ extra permission we need.
 
 ```
 <@maxpowa> .gh-hook maxpowa/sopel-github
