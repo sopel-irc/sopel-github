@@ -49,7 +49,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-emoji = [
+emojize = [
   "emoji>=1.7,<3",
 ]
 

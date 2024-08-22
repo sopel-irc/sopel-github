@@ -24,10 +24,10 @@ longer updated.
 #### Optional features
 
 References to `:named_emoji:` in titles & comments can be converted to Unicode
-in the output. If you want this feature, install the plugin's `emoji` extra:
+in the output. If you want this feature, install the plugin's `emojize` extra:
 
 ```sh
-pip install sopel-github[emoji]
+pip install sopel-github[emojize]
 ```
 
 _**Note:** GitHub also supports some non-standard emoji names such as `:shipit:`
