@@ -1,3 +1,10 @@
+Changes in 0.4.8.post0
+======================
+
+Meta:
+* Document this package's EOL; it's replaced by `sopel-github`.
+
+
 Changes in 0.4.8
 ================
 

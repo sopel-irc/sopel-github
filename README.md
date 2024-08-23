@@ -2,6 +2,11 @@
 
 GitHub plugin for [Sopel](https://sopel.chat/) IRC bots.
 
+**This plugin is no longer updated. It is replaced by
+[`sopel-github`](https://pypi.org/project/sopel-github/).**
+`sopel_modules.github` is kept available for users running Sopel 7.x and
+earlier, but you are encouraged to upgrade as soon as possible.
+
 
 ## Installation
 
