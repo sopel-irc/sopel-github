@@ -14,7 +14,7 @@ readme = { file=["README.md", "NEWS"], content-type="text/markdown" }
 
 [project]
 name = "sopel-github"
-version = "0.5.0.dev0"
+version = "0.5.0"
 description = "GitHub plugin for Sopel"
 
 authors = [

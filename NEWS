@@ -1,5 +1,37 @@
 ## Changelog
 
+### 0.5.0
+
+This is the first release named `sopel-github`. Previous versions of this plugin
+were known as `sopel_modules.github`, and are still available from PyPI for
+users running Sopel 7.x or older.
+
+Added:
+* Support for inline references to issues/PRs from _any_ repo (#125)
+* Timestamps in issue, PR, and comment output (#126)
+* Configurable skipping of short inline issue/PR numbers (#137)
+  * This is to help bot owners deal with e.g. people talking about their `#1`
+    _something_ and the bot posts your project's first issue.
+
+Changed:
+* Modernized for newer Sopel versions (#110, #138)
+* Send version header to GitHub API (#122)
+* Reworked PR merge status lookup (#123)
+
+Fixed:
+* Handle directory links, not just files (#134)
+* Suppress errors for invalid inline issue references (#136)
+
+Removed:
+* Obsolete `secret` setting (#124)
+
+Meta:
+* New package name, `sopel-github` (#138)
+* Sopel 8.0+ now required (#138)
+* Made optional `:emoji_name:` conversion a setuptools extra (#120, #140)
+  * Install `sopel-github[emojize]` to enable this feature.
+
+
 ### 0.4.8
 
 Changed:
