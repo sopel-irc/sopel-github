@@ -50,7 +50,7 @@ dependencies = [
 
 [project.optional-dependencies]
 emojize = [
-  "emoji>=1.7,<3",
+  "emoji>=2.0,<3",
 ]
 
 [project.urls]
